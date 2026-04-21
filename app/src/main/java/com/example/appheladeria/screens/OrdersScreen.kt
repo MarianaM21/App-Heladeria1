@@ -2,7 +2,6 @@ package com.example.appheladeria.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -27,57 +26,25 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.rememberNavController
-import com.example.appheladeria.components.AppBottomBar
-import com.example.appheladeria.navigation.AppScreens
-import com.example.appheladeria.ui.theme.AppHeladeriaTheme
+import com.example.appheladeria.data.model.Order
 import com.example.appheladeria.ui.theme.BackgroundSoft
 import com.example.appheladeria.ui.theme.CardSoft
 import com.example.appheladeria.ui.theme.PrimaryPink
 import com.example.appheladeria.ui.theme.TextDark
 import com.example.appheladeria.ui.theme.TextMuted
 
-data class OrderUi(
-    val id: String,
-    val status: String,
-    val total: String,
-    val summary: String
-)
-
 @Composable
 fun OrdersScreen(
+    orders: List<Order>,
     onBack: () -> Unit
 ) {
-    val orders = listOf(
-        OrderUi(
-            id = "#4249",
-            status = "Entregado",
-            total = "$34.50",
-            summary = "2 helados + 1 topping"
-        ),
-        OrderUi(
-            id = "#7832",
-            status = "En camino",
-            total = "$18.00",
-            summary = "1 waffle cone + extra fudge"
-        ),
-        OrderUi(
-            id = "#7998",
-            status = "En preparación",
-            total = "$25.50",
-            summary = "3 helados personalizados"
-        )
-    )
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -112,19 +79,33 @@ fun OrdersScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        ) {
-            items(orders) { order ->
-                OrderCard(order = order)
+        if (orders.isEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Text(
+                    text = "Todavía no tienes pedidos",
+                    modifier = Modifier.padding(18.dp),
+                    color = TextDark
+                )
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                items(orders) { order ->
+                    OrderCard(order = order)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun OrderCard(order: OrderUi) {
+private fun OrderCard(order: Order) {
     val statusColor = when (order.status) {
         "Entregado" -> Color(0xFF2E9B57)
         "En camino" -> PrimaryPink
@@ -135,6 +116,12 @@ private fun OrderCard(order: OrderUi) {
         "Entregado" -> Icons.Default.Done
         "En camino" -> Icons.Default.DeliveryDining
         else -> Icons.Default.Icecream
+    }
+
+    val summary = if (order.items.isEmpty()) {
+        "Sin productos"
+    } else {
+        order.items.joinToString(", ") { it.flavor }
     }
 
     Card(
@@ -150,7 +137,7 @@ private fun OrderCard(order: OrderUi) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Pedido ${order.id}",
+                        text = "Pedido #${order.id}",
                         fontWeight = FontWeight.ExtraBold,
                         color = TextDark,
                         style = MaterialTheme.typography.titleLarge
@@ -159,13 +146,13 @@ private fun OrderCard(order: OrderUi) {
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = order.summary,
+                        text = summary,
                         color = TextMuted
                     )
                 }
 
                 Text(
-                    text = order.total,
+                    text = "$${"%.2f".format(order.total)}",
                     color = PrimaryPink,
                     fontWeight = FontWeight.ExtraBold
                 )
@@ -198,26 +185,6 @@ private fun OrderCard(order: OrderUi) {
                         fontWeight = FontWeight.Bold
                     )
                 }
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun OrdersScreenPreview() {
-    val navController = rememberNavController()
-    AppHeladeriaTheme {
-        Scaffold(
-            bottomBar = {
-                AppBottomBar(
-                    navController = navController,
-                    currentRoute = AppScreens.Orders.route
-                )
-            }
-        ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues)) {
-                OrdersScreen(onBack = {})
             }
         }
     }

@@ -1,16 +1,21 @@
 package com.example.appheladeria.data.datastore
 
 import android.content.Context
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.appheladeria.data.model.CartProduct
+import com.example.appheladeria.data.model.Order
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import java.io.IOException
 
 private const val DATASTORE_NAME = "app_heladeria_prefs"
 private val Context.dataStore by preferencesDataStore(name = DATASTORE_NAME)
@@ -19,12 +24,14 @@ class DataStoreManager(private val context: Context) {
 
     companion object {
         val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
+
         val USER_NAME = stringPreferencesKey("user_name")
         val USER_EMAIL = stringPreferencesKey("user_email")
         val USER_PASSWORD = stringPreferencesKey("user_password")
         val USER_PHONE = stringPreferencesKey("user_phone")
 
         val CART_ITEMS = stringPreferencesKey("cart_items_json")
+        val ORDERS = stringPreferencesKey("orders_json")
 
         val LAST_FLAVOR = stringPreferencesKey("last_flavor")
         val LAST_TOPPING = stringPreferencesKey("last_topping")
@@ -35,6 +42,16 @@ class DataStoreManager(private val context: Context) {
         ignoreUnknownKeys = true
     }
 
+    private fun dataStoreFlow(): Flow<Preferences> {
+        return context.dataStore.data.catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+    }
+
     suspend fun saveLoginState(value: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[IS_LOGGED_IN] = value
@@ -42,7 +59,7 @@ class DataStoreManager(private val context: Context) {
     }
 
     fun getLoginState(): Flow<Boolean> =
-        context.dataStore.data.map { preferences ->
+        dataStoreFlow().map { preferences ->
             preferences[IS_LOGGED_IN] ?: false
         }
 
@@ -61,22 +78,22 @@ class DataStoreManager(private val context: Context) {
     }
 
     fun getUserName(): Flow<String> =
-        context.dataStore.data.map { preferences ->
+        dataStoreFlow().map { preferences ->
             preferences[USER_NAME] ?: ""
         }
 
     fun getUserEmail(): Flow<String> =
-        context.dataStore.data.map { preferences ->
+        dataStoreFlow().map { preferences ->
             preferences[USER_EMAIL] ?: ""
         }
 
     fun getUserPassword(): Flow<String> =
-        context.dataStore.data.map { preferences ->
+        dataStoreFlow().map { preferences ->
             preferences[USER_PASSWORD] ?: ""
         }
 
     fun getUserPhone(): Flow<String> =
-        context.dataStore.data.map { preferences ->
+        dataStoreFlow().map { preferences ->
             preferences[USER_PHONE] ?: ""
         }
 
@@ -87,10 +104,26 @@ class DataStoreManager(private val context: Context) {
     }
 
     fun getCartItems(): Flow<List<CartProduct>> =
-        context.dataStore.data.map { preferences ->
+        dataStoreFlow().map { preferences ->
             val raw = preferences[CART_ITEMS] ?: "[]"
             try {
                 json.decodeFromString<List<CartProduct>>(raw)
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
+
+    suspend fun saveOrders(orders: List<Order>) {
+        context.dataStore.edit { preferences ->
+            preferences[ORDERS] = json.encodeToString(orders)
+        }
+    }
+
+    fun getOrders(): Flow<List<Order>> =
+        dataStoreFlow().map { preferences ->
+            val raw = preferences[ORDERS] ?: "[]"
+            try {
+                json.decodeFromString<List<Order>>(raw)
             } catch (_: Exception) {
                 emptyList()
             }
@@ -109,29 +142,23 @@ class DataStoreManager(private val context: Context) {
     }
 
     fun getLastFlavor(): Flow<String> =
-        context.dataStore.data.map { preferences ->
+        dataStoreFlow().map { preferences ->
             preferences[LAST_FLAVOR] ?: ""
         }
 
     fun getLastTopping(): Flow<String> =
-        context.dataStore.data.map { preferences ->
+        dataStoreFlow().map { preferences ->
             preferences[LAST_TOPPING] ?: ""
         }
 
     fun getLastSize(): Flow<String> =
-        context.dataStore.data.map { preferences ->
+        dataStoreFlow().map { preferences ->
             preferences[LAST_SIZE] ?: ""
         }
 
     suspend fun clearCart() {
         context.dataStore.edit { preferences ->
             preferences[CART_ITEMS] = "[]"
-        }
-    }
-
-    suspend fun clearAll() {
-        context.dataStore.edit { preferences ->
-            preferences.clear()
         }
     }
 }

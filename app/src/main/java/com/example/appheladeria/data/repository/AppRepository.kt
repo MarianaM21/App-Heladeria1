@@ -2,6 +2,7 @@ package com.example.appheladeria.data.repository
 
 import com.example.appheladeria.data.datastore.DataStoreManager
 import com.example.appheladeria.data.model.CartProduct
+import com.example.appheladeria.data.model.Order
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
@@ -15,14 +16,15 @@ class AppRepository(
     fun getUserPhone(): Flow<String> = dataStoreManager.getUserPhone()
 
     fun getCartItems(): Flow<List<CartProduct>> = dataStoreManager.getCartItems()
+    fun getOrders(): Flow<List<Order>> = dataStoreManager.getOrders()
 
     fun getLastFlavor(): Flow<String> = dataStoreManager.getLastFlavor()
     fun getLastTopping(): Flow<String> = dataStoreManager.getLastTopping()
     fun getLastSize(): Flow<String> = dataStoreManager.getLastSize()
 
     suspend fun getUserEmailValue(): String = dataStoreManager.getUserEmail().first()
-
     suspend fun getUserPasswordValue(): String = dataStoreManager.getUserPassword().first()
+    suspend fun getOrdersValue(): List<Order> = dataStoreManager.getOrders().first()
 
     suspend fun setLoggedIn(value: Boolean) {
         dataStoreManager.saveLoginState(value)
@@ -56,5 +58,9 @@ class AppRepository(
         size: String
     ) {
         dataStoreManager.saveLastSelection(flavor, topping, size)
+    }
+
+    suspend fun saveOrders(orders: List<Order>) {
+        dataStoreManager.saveOrders(orders)
     }
 }
