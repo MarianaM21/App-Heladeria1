@@ -15,4 +15,9 @@ sealed class AppScreens(val route: String) {
     data object Referral : AppScreens("referral")
     data object PaymentSuccess : AppScreens("payment_success")
     data object Tracking : AppScreens("tracking")
+    
+    // Admin Screens
+    data object AdminDashboard : AppScreens("admin_dashboard")
+    data object AdminActiveProducts : AppScreens("admin_active_products")
+    data object AdminCreateProduct : AppScreens("admin_create_product")
 }

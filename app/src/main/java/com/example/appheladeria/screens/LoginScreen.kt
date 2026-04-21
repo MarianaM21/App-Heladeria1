@@ -34,7 +34,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.appheladeria.ui.theme.AppHeladeriaTheme
 import com.example.appheladeria.ui.theme.BackgroundSoft
 import com.example.appheladeria.ui.theme.PrimaryPink
 import com.example.appheladeria.ui.theme.TextDark
@@ -267,11 +270,25 @@ fun LoginScreen(
                     text = "¿No tienes cuenta? Regístrate",
                     color = PrimaryPink,
                     fontWeight = FontWeight.Bold,
+                    textDecoration = TextDecoration.Underline,
                     modifier = Modifier.clickable(enabled = !isLoggingIn) {
                         onGoRegister()
                     }
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun LoginScreenPreview() {
+    AppHeladeriaTheme {
+        LoginScreen(
+            loginError = "",
+            isLoggingIn = false,
+            onLogin = { _, _ -> },
+            onGoRegister = {}
+        )
     }
 }

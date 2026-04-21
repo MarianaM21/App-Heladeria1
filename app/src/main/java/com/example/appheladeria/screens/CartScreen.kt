@@ -43,8 +43,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.appheladeria.data.model.CartProduct
+import com.example.appheladeria.ui.theme.AppHeladeriaTheme
 import com.example.appheladeria.ui.theme.BackgroundSoft
 import com.example.appheladeria.ui.theme.LavenderCard
 import com.example.appheladeria.ui.theme.PrimaryPink
@@ -94,7 +96,6 @@ fun CartScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ===== RESUMEN PEDIDO =====
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -201,7 +202,6 @@ fun CartScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ===== DIRECCIÓN =====
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -257,7 +257,6 @@ fun CartScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // ===== PAGO =====
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -327,5 +326,24 @@ fun CartScreen(
         }
 
         Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun CartScreenPreview() {
+    val sampleItems = listOf(
+        CartProduct("Vainilla", "Rainbow Sprinkles", "M", 6.50f, 1),
+        CartProduct("Chocolate", "Choco Chips", "L", 8.00f, 2)
+    )
+    AppHeladeriaTheme {
+        CartScreen(
+            cartItems = sampleItems,
+            cartCount = 3,
+            cartTotal = 22.50f,
+            onBack = {},
+            onPayNow = {},
+            onRemoveItem = {}
+        )
     }
 }

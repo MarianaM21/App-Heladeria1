@@ -2,6 +2,7 @@ package com.example.appheladeria.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,24 +13,33 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DeliveryDining
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Icecream
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.rememberNavController
+import com.example.appheladeria.components.AppBottomBar
+import com.example.appheladeria.navigation.AppScreens
+import com.example.appheladeria.ui.theme.AppHeladeriaTheme
 import com.example.appheladeria.ui.theme.BackgroundSoft
 import com.example.appheladeria.ui.theme.CardSoft
 import com.example.appheladeria.ui.theme.PrimaryPink
@@ -44,7 +54,9 @@ data class OrderUi(
 )
 
 @Composable
-fun OrdersScreen() {
+fun OrdersScreen(
+    onBack: () -> Unit
+) {
     val orders = listOf(
         OrderUi(
             id = "#4249",
@@ -74,6 +86,16 @@ fun OrdersScreen() {
             .navigationBarsPadding()
             .padding(16.dp)
     ) {
+        IconButton(onClick = onBack) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Volver",
+                tint = TextDark
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         Text(
             text = "Mis Pedidos",
             style = MaterialTheme.typography.headlineMedium,
@@ -159,7 +181,8 @@ private fun OrderCard(order: OrderUi) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     Icon(
                         imageVector = statusIcon,
@@ -167,7 +190,7 @@ private fun OrderCard(order: OrderUi) {
                         tint = statusColor
                     )
 
-                    Spacer(modifier = Modifier.height(0.dp).padding(start = 8.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
                         text = order.status,
@@ -175,6 +198,26 @@ private fun OrderCard(order: OrderUi) {
                         fontWeight = FontWeight.Bold
                     )
                 }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun OrdersScreenPreview() {
+    val navController = rememberNavController()
+    AppHeladeriaTheme {
+        Scaffold(
+            bottomBar = {
+                AppBottomBar(
+                    navController = navController,
+                    currentRoute = AppScreens.Orders.route
+                )
+            }
+        ) { paddingValues ->
+            Box(modifier = Modifier.padding(paddingValues)) {
+                OrdersScreen(onBack = {})
             }
         }
     }

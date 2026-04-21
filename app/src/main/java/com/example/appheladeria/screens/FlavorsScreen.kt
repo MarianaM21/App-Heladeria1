@@ -27,6 +27,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,7 +37,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.rememberNavController
 import com.example.appheladeria.R
+import com.example.appheladeria.components.AppBottomBar
+import com.example.appheladeria.navigation.AppScreens
+import com.example.appheladeria.ui.theme.AppHeladeriaTheme
 import com.example.appheladeria.ui.theme.BackgroundSoft
 import com.example.appheladeria.ui.theme.PrimaryPink
 import com.example.appheladeria.ui.theme.SecondaryPink
@@ -174,13 +179,27 @@ fun FlavorCard(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun FlavorsScreenPreview() {
-    FlavorsScreen(
-        onBack = {},
-        onSelectFlavor = {}
-    )
+    val navController = rememberNavController()
+    AppHeladeriaTheme {
+        Scaffold(
+            bottomBar = {
+                AppBottomBar(
+                    navController = navController,
+                    currentRoute = AppScreens.Flavors.route
+                )
+            }
+        ) { paddingValues ->
+            Box(modifier = Modifier.padding(paddingValues)) {
+                FlavorsScreen(
+                    onBack = {},
+                    onSelectFlavor = {}
+                )
+            }
+        }
+    }
 }
 
 @Preview(showBackground = true)

@@ -21,6 +21,8 @@ import com.example.appheladeria.ui.theme.TextDark
 import com.example.appheladeria.ui.theme.TextMuted
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.height
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.appheladeria.ui.theme.AppHeladeriaTheme
 
 @Composable
 fun SplashScreen(
@@ -63,5 +65,13 @@ fun SplashScreen(
         Spacer(modifier = Modifier.size(24.dp))
 
         CircularProgressIndicator(color = PrimaryPink)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun SplashScreenPreview() {
+    AppHeladeriaTheme {
+        SplashScreen(onFinish = {})
     }
 }

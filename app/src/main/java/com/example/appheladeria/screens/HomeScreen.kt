@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,6 +39,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,6 +54,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.rememberNavController
+import com.example.appheladeria.components.AppBottomBar
+import com.example.appheladeria.navigation.AppScreens
 import com.example.appheladeria.ui.theme.AppHeladeriaTheme
 import com.example.appheladeria.ui.theme.BackgroundSoft
 import com.example.appheladeria.ui.theme.PrimaryPink
@@ -461,14 +466,16 @@ private fun SmallNavCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 14.dp, horizontal = 4.dp),
+                .height(90.dp)
+                .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = PrimaryPink
+                tint = PrimaryPink,
+                modifier = Modifier.size(28.dp)
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
@@ -485,20 +492,32 @@ private fun SmallNavCard(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
+    val navController = rememberNavController()
     AppHeladeriaTheme {
-        HomeScreen(
-            userName = "Mariana",
-            cartCount = 2,
-            cartTotal = 12.50f,
-            onAddPromo = {},
-            onLogout = {},
-            onGoCustomize = {},
-            onGoCart = {},
-            onGoProfile = {},
-            onGoOrders = {},
-            onGoQr = {},
-            onGoReferral = {},
-            onAddTrending = {}
-        )
+        Scaffold(
+            bottomBar = {
+                AppBottomBar(
+                    navController = navController,
+                    currentRoute = AppScreens.Home.route
+                )
+            }
+        ) { paddingValues ->
+            Box(modifier = Modifier.padding(paddingValues)) {
+                HomeScreen(
+                    userName = "Mariana",
+                    cartCount = 2,
+                    cartTotal = 12.50f,
+                    onAddPromo = {},
+                    onLogout = {},
+                    onGoCustomize = {},
+                    onGoCart = {},
+                    onGoProfile = {},
+                    onGoOrders = {},
+                    onGoQr = {},
+                    onGoReferral = {},
+                    onAddTrending = {}
+                )
+            }
+        }
     }
 }
