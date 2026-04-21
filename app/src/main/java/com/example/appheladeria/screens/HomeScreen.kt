@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,6 +31,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,15 +41,18 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.appheladeria.ui.theme.AppHeladeriaTheme
 import com.example.appheladeria.ui.theme.BackgroundSoft
 import com.example.appheladeria.ui.theme.PrimaryPink
 import com.example.appheladeria.ui.theme.SecondaryPink
@@ -78,6 +82,7 @@ fun HomeScreen(
     onAddTrending: (IceCream) -> Unit
 ) {
     var search by rememberSaveable { mutableStateOf("") }
+    var showSuggestions by remember { mutableStateOf(false) }
 
     val categories = listOf("🍦 Conos", "🍓 Frutales", "🍫 Chocolates", "🥭 Tropicales")
 
@@ -148,31 +153,63 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        OutlinedTextField(
-            value = search,
-            onValueChange = { search = it },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            singleLine = true,
-            label = { Text("Buscar helado, topping o combo") },
-            placeholder = { Text("Ej: vainilla, chocolate, mango") },
-            leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = null, tint = PrimaryPink)
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = PrimaryPink,
-                unfocusedBorderColor = Color(0xFFB9B0BA),
-                focusedTextColor = TextDark,
-                unfocusedTextColor = TextDark,
-                focusedLabelColor = PrimaryPink,
-                unfocusedLabelColor = TextDark,
-                focusedPlaceholderColor = TextMuted,
-                unfocusedPlaceholderColor = TextMuted,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                cursorColor = PrimaryPink
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = search,
+                onValueChange = { 
+                    search = it
+                    showSuggestions = it.isNotBlank()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                singleLine = true,
+                label = { Text("Buscar helado, topping o combo") },
+                placeholder = { Text("Ej: vainilla, chocolate, mango") },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = null, tint = PrimaryPink)
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryPink,
+                    unfocusedBorderColor = Color(0xFFB9B0BA),
+                    focusedTextColor = TextDark,
+                    unfocusedTextColor = TextDark,
+                    focusedLabelColor = PrimaryPink,
+                    unfocusedLabelColor = TextDark,
+                    focusedPlaceholderColor = TextMuted,
+                    unfocusedPlaceholderColor = TextMuted,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    cursorColor = PrimaryPink
+                )
             )
-        )
+
+            DropdownMenu(
+                expanded = showSuggestions && filteredTrending.isNotEmpty(),
+                onDismissRequest = { showSuggestions = false },
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .background(Color.White)
+            ) {
+                filteredTrending.take(5).forEach { item ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(text = item.emoji, modifier = Modifier.padding(end = 8.dp))
+                                Column {
+                                    Text(text = item.name, fontWeight = FontWeight.Bold, color = TextDark)
+                                    Text(text = "$${"%.2f".format(item.price)}", style = MaterialTheme.typography.bodySmall, color = PrimaryPink)
+                                }
+                            }
+                        },
+                        onClick = {
+                            search = item.name
+                            showSuggestions = false
+                            onAddTrending(item)
+                        }
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -422,17 +459,46 @@ private fun SmallNavCard(
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(
-            modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 14.dp, horizontal = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Icon(icon, contentDescription = null, tint = PrimaryPink)
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = PrimaryPink
+            )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                title,
+                text = title,
                 style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Medium,
-                color = TextDark
+                fontWeight = FontWeight.Bold,
+                color = TextDark,
+                textAlign = TextAlign.Center
             )
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun HomeScreenPreview() {
+    AppHeladeriaTheme {
+        HomeScreen(
+            userName = "Mariana",
+            cartCount = 2,
+            cartTotal = 12.50f,
+            onAddPromo = {},
+            onLogout = {},
+            onGoCustomize = {},
+            onGoCart = {},
+            onGoProfile = {},
+            onGoOrders = {},
+            onGoQr = {},
+            onGoReferral = {},
+            onAddTrending = {}
+        )
     }
 }

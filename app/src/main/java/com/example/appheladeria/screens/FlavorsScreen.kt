@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.appheladeria.R
 import com.example.appheladeria.ui.theme.BackgroundSoft
@@ -101,66 +102,94 @@ fun FlavorsScreen(
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             items(flavors) { flavor ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(68.dp)
-                                .background(
-                                    color = SecondaryPink.copy(alpha = 0.18f),
-                                    shape = CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                painter = painterResource(id = flavor.imageRes),
-                                contentDescription = flavor.name,
-                                modifier = Modifier.size(42.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.size(14.dp))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = flavor.name,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = TextDark
-                            )
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            Text(
-                                text = flavor.description,
-                                color = TextMuted
-                            )
-
-                            Spacer(modifier = Modifier.height(6.dp))
-
-                            Text(
-                                text = "$${"%.2f".format(flavor.price.toDouble())}",
-                                color = PrimaryPink,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-
-                        Button(
-                            onClick = { onSelectFlavor(flavor.name) },
-                            shape = RoundedCornerShape(22.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryPink)
-                        ) {
-                            Text("Elegir")
-                        }
-                    }
-                }
+                FlavorCard(flavor = flavor, onSelect = onSelectFlavor)
             }
         }
+    }
+}
+
+@Composable
+fun FlavorCard(
+    flavor: FlavorUi,
+    onSelect: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(68.dp)
+                    .background(
+                        color = SecondaryPink.copy(alpha = 0.18f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = flavor.imageRes),
+                    contentDescription = flavor.name,
+                    modifier = Modifier.size(42.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.size(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = flavor.name,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = TextDark
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = flavor.description,
+                    color = TextMuted
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = "$${"%.2f".format(flavor.price.toDouble())}",
+                    color = PrimaryPink,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Button(
+                onClick = { onSelect(flavor.name) },
+                shape = RoundedCornerShape(22.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryPink)
+            ) {
+                Text("Elegir")
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FlavorsScreenPreview() {
+    FlavorsScreen(
+        onBack = {},
+        onSelectFlavor = {}
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FlavorCardPreview() {
+    Box(modifier = Modifier.padding(16.dp)) {
+        FlavorCard(
+            flavor = FlavorUi("Vainilla", 5.50f, R.drawable.img_vainilla, "Clásica, suave y cremosa"),
+            onSelect = {}
+        )
     }
 }

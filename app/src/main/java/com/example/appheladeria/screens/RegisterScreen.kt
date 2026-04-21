@@ -37,7 +37,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.appheladeria.ui.theme.AppHeladeriaTheme
 import com.example.appheladeria.ui.theme.BackgroundSoft
 import com.example.appheladeria.ui.theme.PrimaryPink
 import com.example.appheladeria.ui.theme.TextDark
@@ -46,7 +48,8 @@ import com.example.appheladeria.ui.theme.TextMuted
 @Composable
 fun RegisterScreen(
     onRegister: (String, String, String, String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onGoLogin: () -> Unit = {}
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
@@ -194,7 +197,7 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                TextButton(onClick = onBack) {
+                TextButton(onClick = onGoLogin) {
                     Text(
                         text = "Ya tengo una cuenta",
                         color = PrimaryPink
@@ -259,4 +262,16 @@ private fun RegisterField(
             unfocusedContainerColor = Color.White
         )
     )
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun RegisterScreenPreview() {
+    AppHeladeriaTheme {
+        RegisterScreen(
+            onRegister = { _, _, _, _ -> },
+            onBack = {},
+            onGoLogin = {}
+        )
+    }
 }

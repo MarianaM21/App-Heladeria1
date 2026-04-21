@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.appheladeria.ui.theme.BackgroundSoft
 import com.example.appheladeria.ui.theme.BorderSoft
@@ -369,4 +370,17 @@ private fun ToppingCard(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CustomizeScreenPreview() {
+    CustomizeScreen(
+        initialFlavor = "Chocolate",
+        initialTopping = "Choco Chips",
+        initialSize = "L",
+        onBack = {},
+        onGoFlavors = {},
+        onAddToCart = { _, _, _, _ -> }
+    )
 }
