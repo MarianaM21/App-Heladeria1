@@ -20,4 +20,6 @@ sealed class AppScreens(val route: String) {
     data object AdminDashboard : AppScreens("admin_dashboard")
     data object AdminActiveProducts : AppScreens("admin_active_products")
     data object AdminCreateProduct : AppScreens("admin_create_product")
+    data object AdminSalesHistory : AppScreens("admin_sales_history")
+    data object AdminConfirmation : AppScreens("admin_confirmation")
 }

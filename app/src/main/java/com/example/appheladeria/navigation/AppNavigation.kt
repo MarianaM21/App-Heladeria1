@@ -47,17 +47,38 @@ fun AppNavigation(
     LaunchedEffect(loginSuccess) {
         if (loginSuccess == true) {
             delay(1200)
-            navController.navigate(AppScreens.Home.route) {
-                popUpTo(AppScreens.Login.route) { inclusive = true }
-                launchSingleTop = true
+            
+            // Redirección inteligente: Admin o Usuario normal
+            if (userEmail == "admin@heladeria.com") {
+                navController.navigate(AppScreens.AdminDashboard.route) {
+                    popUpTo(AppScreens.Login.route) { inclusive = true }
+                    launchSingleTop = true
+                }
+            } else {
+                navController.navigate(AppScreens.Home.route) {
+                    popUpTo(AppScreens.Login.route) { inclusive = true }
+                    launchSingleTop = true
+                }
             }
+            
             viewModel.resetLoginState()
         }
     }
 
     Scaffold(
         bottomBar = {
-            if (currentRoute != AppScreens.Splash.route) {
+            // Ocultar BottomBar en Login, Registro, Splash, Welcome y pantallas de Admin
+            val hideBottomBarRoutes = listOf(
+                AppScreens.Splash.route,
+                AppScreens.Welcome.route,
+                AppScreens.Login.route,
+                AppScreens.Register.route,
+                AppScreens.AdminDashboard.route,
+                AppScreens.AdminActiveProducts.route,
+                AppScreens.AdminCreateProduct.route
+            )
+            
+            if (currentRoute !in hideBottomBarRoutes) {
                 AppBottomBar(
                     navController = navController,
                     currentRoute = currentRoute
@@ -246,7 +267,7 @@ fun AppNavigation(
             composable(AppScreens.AdminCreateProduct.route) {
                 CreateProductScreen(
                     onBack = { navController.popBackStack() },
-                    onProductCreated = { navController.popBackStack() }
+                    onProductCreated = { navController.navigate(AppScreens.AdminDashboard.route) } // Redirigir al dashboard tras crear
                 )
             }
         }
