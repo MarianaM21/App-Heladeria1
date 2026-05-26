@@ -78,7 +78,10 @@ class AppViewModel(
     val topNotification: StateFlow<Notification?> = _topNotification.asStateFlow()
 
     fun register(name: String, email: String, pass: String, phone: String) {
-        viewModelScope.launch { repository.registerUser(name, email, pass, phone) }
+        viewModelScope.launch {
+            repository.registerUser(name, email, pass, phone)
+            addNotification("Registro exitoso", "Bienvenido a Heladería App, $name")
+        }
     }
 
     fun login(email: String, password: String) {
@@ -93,6 +96,7 @@ class AppViewModel(
                 repository.setLoggedIn(true)
                 repository.registerUser("Administrador", ADMIN_EMAIL, ADMIN_PASS, "000000")
                 _loginSuccess.value = true
+                addNotification("Sesión iniciada", "Bienvenido, Administrador")
                 _isLoggingIn.value = false
                 return@launch
             }
@@ -109,13 +113,18 @@ class AppViewModel(
                     _loginError.value = "Primero debes crear una cuenta"
                     _loginSuccess.value = false
                 }
-                email.trim() != savedEmail || password.trim() != savedPassword -> {
-                    _loginError.value = "Credenciales incorrectas"
+                email.trim() != savedEmail -> {
+                    _loginError.value = "Correo incorrecto"
+                    _loginSuccess.value = false
+                }
+                password.trim() != savedPassword -> {
+                    _loginError.value = "Contraseña incorrecta"
                     _loginSuccess.value = false
                 }
                 else -> {
                     repository.setLoggedIn(true)
                     _loginSuccess.value = true
+                    addNotification("Sesión iniciada", "¡Bienvenid@ de nuevo!")
                 }
             }
             _isLoggingIn.value = false
@@ -128,7 +137,12 @@ class AppViewModel(
         _isLoggingIn.value = false
     }
 
-    fun logout() { viewModelScope.launch { repository.logout() } }
+    fun logout() {
+        viewModelScope.launch {
+            repository.logout()
+            addNotification("Sesión cerrada", "Has cerrado sesión correctamente")
+        }
+    }
 
     fun addNotification(title: String, message: String) {
         viewModelScope.launch {
