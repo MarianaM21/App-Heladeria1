@@ -27,12 +27,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -60,7 +63,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.rememberNavController
+import com.example.appheladeria.components.AppBottomBar
+import com.example.appheladeria.navigation.AppScreens
+import com.example.appheladeria.ui.theme.AppHeladeriaTheme
 import com.example.appheladeria.ui.theme.BackgroundSoft
 import com.example.appheladeria.ui.theme.PrimaryPink
 import com.example.appheladeria.ui.theme.SecondaryPink
@@ -80,6 +89,7 @@ fun HomeScreen(
     userName: String,
     cartCount: Int,
     cartTotal: Float,
+    unreadNotifications: Int,
     onAddPromo: () -> Unit,
     onLogout: () -> Unit,
     onGoCart: () -> Unit,
@@ -87,6 +97,7 @@ fun HomeScreen(
     onGoOrders: () -> Unit,
     onGoQr: () -> Unit,
     onGoReferral: () -> Unit,
+    onGoNotifications: () -> Unit,
     onGoCategory: (String) -> Unit,
     onAddTrending: (IceCream) -> Unit
 ) {
@@ -96,12 +107,7 @@ fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    val categories = listOf(
-        "Conos",
-        "Frutales",
-        "Chocolates",
-        "Tropicales"
-    )
+    val categories = listOf("Conos", "Frutales", "Chocolates", "Tropicales")
 
     val trending = remember {
         listOf(
@@ -116,25 +122,8 @@ fun HomeScreen(
 
     val filteredTrending = remember(search, trending) {
         val query = search.trim()
-        if (query.isBlank()) {
-            trending
-        } else {
-            trending.filter { item ->
-                item.name.contains(query, ignoreCase = true) ||
-                        item.description.contains(query, ignoreCase = true)
-            }
-        }
-    }
-
-    val searchSuggestions = remember(search, trending) {
-        val query = search.trim()
-        if (query.isBlank()) {
-            emptyList()
-        } else {
-            trending.filter {
-                it.name.contains(query, ignoreCase = true)
-            }.take(4)
-        }
+        if (query.isBlank()) trending
+        else trending.filter { it.name.contains(query, ignoreCase = true) }
     }
 
     Scaffold(
@@ -144,7 +133,6 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BackgroundSoft)
                 .statusBarsPadding()
                 .navigationBarsPadding()
                 .padding(paddingValues)
@@ -170,16 +158,8 @@ fun HomeScreen(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
-
-                            Spacer(modifier = Modifier.height(2.dp))
-
-                            Text(
-                                text = "👋",
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-
+                            Text(text = "👋", style = MaterialTheme.typography.headlineSmall)
                             Spacer(modifier = Modifier.height(4.dp))
-
                             Text(
                                 text = "¿Qué vas a pedir hoy?",
                                 style = MaterialTheme.typography.titleLarge,
@@ -188,115 +168,61 @@ fun HomeScreen(
                             )
                         }
 
-                        IconButton(onClick = onLogout) {
-                            Icon(
-                                imageVector = Icons.Default.ExitToApp,
-                                contentDescription = "Cerrar sesión",
-                                tint = TextDark
-                            )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            // ===== BOTÓN CAMPANITA NOTIFICACIONES =====
+                            IconButton(onClick = onGoNotifications) {
+                                BadgedBox(
+                                    badge = {
+                                        if (unreadNotifications > 0) {
+                                            Badge(containerColor = PrimaryPink) {
+                                                Text(text = unreadNotifications.toString(), color = Color.White)
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Notifications,
+                                        contentDescription = "Notificaciones",
+                                        tint = TextDark
+                                    )
+                                }
+                            }
+
+                            IconButton(onClick = onLogout) {
+                                Icon(
+                                    imageVector = Icons.Default.ExitToApp,
+                                    contentDescription = "Cerrar sesión",
+                                    tint = TextDark
+                                )
+                            }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    Box {
-                        OutlinedTextField(
-                            value = search,
-                            onValueChange = {
-                                search = it
-                                showSuggestions = it.isNotBlank()
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(28.dp),
-                            singleLine = true,
-                            label = { Text("Buscar helado, topping o combo") },
-                            placeholder = { Text("Ej: vainilla, chocolate, mango") },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Default.Search,
-                                    contentDescription = null,
-                                    tint = PrimaryPink
-                                )
-                            },
-                            trailingIcon = {
-                                if (search.isNotBlank()) {
-                                    IconButton(
-                                        onClick = {
-                                            search = ""
-                                            showSuggestions = false
-                                        }
-                                    ) {
-                                        Text(
-                                            text = "✕",
-                                            color = PrimaryPink,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                }
-                            },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = PrimaryPink,
-                                unfocusedBorderColor = Color(0xFFB9B0BA),
-                                focusedTextColor = TextDark,
-                                unfocusedTextColor = TextDark,
-                                focusedLabelColor = PrimaryPink,
-                                unfocusedLabelColor = TextDark,
-                                focusedPlaceholderColor = TextMuted,
-                                unfocusedPlaceholderColor = TextMuted,
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White,
-                                cursorColor = PrimaryPink
-                            )
+                    OutlinedTextField(
+                        value = search,
+                        onValueChange = { search = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(28.dp),
+                        singleLine = true,
+                        placeholder = { Text("Buscar helado...") },
+                        leadingIcon = { Icon(Icons.Default.Search, null, tint = PrimaryPink) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = PrimaryPink,
+                            unfocusedBorderColor = Color(0xFFB9B0BA),
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White
                         )
-
-                        DropdownMenu(
-                            expanded = showSuggestions && searchSuggestions.isNotEmpty(),
-                            onDismissRequest = {
-                                showSuggestions = false
-                            },
-                            modifier = Modifier.fillMaxWidth(0.92f)
-                        ) {
-                            searchSuggestions.forEach { item ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Column {
-                                            Text(
-                                                text = item.name,
-                                                fontWeight = FontWeight.SemiBold
-                                            )
-                                            Text(
-                                                text = item.description,
-                                                color = TextMuted,
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                        }
-                                    },
-                                    onClick = {
-                                        onAddTrending(item)
-                                        search = ""
-                                        showSuggestions = false
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                "${item.name} añadido al carrito"
-                                            )
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    }
+                    )
                 }
             }
 
             item {
-                CompactPromoCard(
-                    onAddPromo = {
-                        onAddPromo()
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Promo añadida al carrito")
-                        }
-                    }
-                )
+                CompactPromoCard(onAddPromo = {
+                    onAddPromo()
+                    scope.launch { snackbarHostState.showSnackbar("Promo añadida") }
+                })
             }
 
             item {
@@ -309,58 +235,36 @@ fun HomeScreen(
                 )
             }
 
-            item {
-                SectionTitle("Categorías")
-            }
+            item { SectionTitle("Categorías") }
 
             item {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(horizontal = 2.dp)
-                ) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(categories) { category ->
-                        CategoryChip(
-                            title = category,
-                            onClick = { onGoCategory(category) }
-                        )
+                        CategoryChip(title = category, onClick = { onGoCategory(category) })
                     }
                 }
             }
 
-            item {
-                SectionTitle("EN TENDENCIA AHORA")
-            }
+            item { SectionTitle("EN TENDENCIA AHORA") }
 
             item {
                 LazyHorizontalGrid(
                     rows = GridCells.Fixed(1),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.fillMaxWidth().height(220.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(filteredTrending.take(6)) { item ->
-                        TrendingCard(
-                            item = item,
-                            onAdd = {
-                                onAddTrending(item)
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        "${item.name} añadido al carrito"
-                                    )
-                                }
-                            }
-                        )
+                    items(filteredTrending) { item ->
+                        TrendingCard(item = item, onAdd = {
+                            onAddTrending(item)
+                            scope.launch { snackbarHostState.showSnackbar("${item.name} añadido") }
+                        })
                     }
                 }
             }
 
             item {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onGoCart() },
+                    modifier = Modifier.fillMaxWidth().clickable { onGoCart() },
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White)
                 ) {
@@ -370,25 +274,13 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.ShoppingCart,
-                                contentDescription = "Carrito",
-                                tint = PrimaryPink
-                            )
+                            Icon(Icons.Default.ShoppingCart, null, tint = PrimaryPink)
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
-                                Text(
-                                    text = "Carrito",
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = TextDark
-                                )
-                                Text(
-                                    text = "$cartCount producto(s)",
-                                    color = TextMuted
-                                )
+                                Text("Carrito", fontWeight = FontWeight.ExtraBold, color = TextDark)
+                                Text("$cartCount producto(s)", color = TextMuted)
                             }
                         }
-
                         Text(
                             text = "$${"%.2f".format(cartTotal.toDouble())}",
                             color = PrimaryPink,
@@ -403,70 +295,32 @@ fun HomeScreen(
 
 @Composable
 private fun SectionTitle(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.ExtraBold,
-        color = TextDark
-    )
+    Text(text = title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, color = TextDark)
 }
 
 @Composable
-private fun CompactPromoCard(
-    onAddPromo: () -> Unit
-) {
+private fun CompactPromoCard(onAddPromo: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = SecondaryPink)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                text = "Promoción especial 🎉",
-                color = TextDark,
-                style = MaterialTheme.typography.titleMedium
-            )
-
+            Text("Promoción especial 🎉", color = TextDark, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = "2x1 en Waffle Cones",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.ExtraBold,
-                color = TextDark
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = "Aprovecha hoy y agrégalo al carrito",
-                color = TextDark
-            )
-
+            Text("2x1 en Waffle Cones", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = TextDark)
             Spacer(modifier = Modifier.height(14.dp))
-
             Button(
                 onClick = onAddPromo,
                 shape = RoundedCornerShape(24.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = PrimaryPink
-                )
-            ) {
-                Text("Agregar promo")
-            }
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = PrimaryPink)
+            ) { Text("Agregar promo") }
         }
     }
 }
 
 @Composable
-private fun QuickActionsRow(
-    onGoProfile: () -> Unit,
-    onGoOrders: () -> Unit,
-    onGoQr: () -> Unit,
-    onGoReferral: () -> Unit,
-    onGoCart: () -> Unit
-) {
+private fun QuickActionsRow(onGoProfile: () -> Unit, onGoOrders: () -> Unit, onGoQr: () -> Unit, onGoReferral: () -> Unit, onGoCart: () -> Unit) {
     val actions = listOf(
         Triple("Pedidos", Icons.Default.ReceiptLong, onGoOrders),
         Triple("Invitar", Icons.Default.Share, onGoReferral),
@@ -474,167 +328,84 @@ private fun QuickActionsRow(
         Triple("QR", Icons.Default.QrCodeScanner, onGoQr),
         Triple("Carrito", Icons.Default.ShoppingCart, onGoCart)
     )
-
     LazyHorizontalGrid(
         rows = GridCells.Fixed(2),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(170.dp),
+        modifier = Modifier.fillMaxWidth().height(170.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(actions) { action ->
-            SmallNavCardCompact(
-                title = action.first,
-                icon = action.second,
-                onClick = action.third
-            )
+            SmallNavCardCompact(title = action.first, icon = action.second, onClick = action.third)
         }
     }
 }
 
 @Composable
-private fun SmallNavCardCompact(
-    title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit
-) {
+private fun SmallNavCardCompact(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
     Card(
-        modifier = Modifier
-            .width(112.dp)
-            .height(76.dp)
-            .clickable { onClick() },
+        modifier = Modifier.width(112.dp).height(76.dp).clickable { onClick() },
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 10.dp, horizontal = 8.dp),
+            modifier = Modifier.fillMaxSize().padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(icon, contentDescription = null, tint = PrimaryPink)
+            Icon(icon, null, tint = PrimaryPink)
             Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.SemiBold,
-                color = TextDark,
-                maxLines = 1
-            )
+            Text(title, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = TextDark, maxLines = 1)
         }
     }
 }
 
 @Composable
-private fun CategoryChip(
-    title: String,
-    onClick: () -> Unit
-) {
+private fun CategoryChip(title: String, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier.clickable { onClick() }
     ) {
-        Box(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = when (title) {
-                    "Conos" -> "🍦 Conos"
-                    "Frutales" -> "🍓 Frutales"
-                    "Chocolates" -> "🍫 Chocolates"
-                    "Tropicales" -> "🥭 Tropicales"
-                    else -> title
-                },
-                color = TextDark,
-                fontWeight = FontWeight.SemiBold
-            )
+        Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Text(text = title, color = TextDark, fontWeight = FontWeight.SemiBold)
         }
     }
 }
 
 @Composable
-private fun TrendingCard(
-    item: IceCream,
-    onAdd: () -> Unit
-) {
+private fun TrendingCard(item: IceCream, onAdd: () -> Unit) {
     Card(
-        modifier = Modifier
-            .width(150.dp)
-            .aspectRatio(0.78f),
+        modifier = Modifier.width(150.dp).aspectRatio(0.78f),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp)
-        ) {
+        Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .background(
-                        color = SecondaryPink.copy(alpha = 0.22f),
-                        shape = RoundedCornerShape(20.dp)
-                    ),
+                modifier = Modifier.fillMaxWidth().weight(1f).background(SecondaryPink.copy(alpha = 0.22f), RoundedCornerShape(20.dp)),
                 contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = item.emoji,
-                    style = MaterialTheme.typography.displaySmall
-                )
-            }
-
+            ) { Text(text = item.emoji, fontSize = 40.sp) }
             Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = item.name,
-                fontWeight = FontWeight.ExtraBold,
-                color = TextDark,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(
-                text = item.description,
-                color = TextMuted,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "$${"%.2f".format(item.price.toDouble())}",
-                    color = PrimaryPink,
-                    fontWeight = FontWeight.ExtraBold
-                )
-
-                Box(
-                    modifier = Modifier
-                        .size(30.dp)
-                        .background(PrimaryPink, CircleShape)
-                        .clickable { onAdd() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "+",
-                        color = Color.White,
-                        fontWeight = FontWeight.ExtraBold
-                    )
+            Text(item.name, fontWeight = FontWeight.ExtraBold, color = TextDark, maxLines = 1)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("$${"%.2f".format(item.price)}", color = PrimaryPink, fontWeight = FontWeight.ExtraBold)
+                Box(modifier = Modifier.size(30.dp).background(PrimaryPink, CircleShape).clickable { onAdd() }, contentAlignment = Alignment.Center) {
+                    Text("+", color = Color.White, fontWeight = FontWeight.ExtraBold)
                 }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun HomeScreenPreview() {
+    val navController = rememberNavController()
+    AppHeladeriaTheme {
+        Scaffold(
+            bottomBar = { AppBottomBar(navController, AppScreens.Home.route) }
+        ) { p ->
+            Box(Modifier.padding(p)) {
+                HomeScreen("Mariana", 2, 12.5f, 3, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})
             }
         }
     }
