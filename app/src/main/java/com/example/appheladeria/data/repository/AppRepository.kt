@@ -3,6 +3,7 @@ package com.example.appheladeria.data.repository
 import com.example.appheladeria.data.datastore.DataStoreManager
 import com.example.appheladeria.data.model.CartProduct
 import com.example.appheladeria.data.model.Order
+import com.example.appheladeria.data.model.Notification
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 
@@ -17,6 +18,7 @@ class AppRepository(
 
     fun getCartItems(): Flow<List<CartProduct>> = dataStoreManager.getCartItems()
     fun getOrders(): Flow<List<Order>> = dataStoreManager.getOrders()
+    fun getNotifications(): Flow<List<Notification>> = dataStoreManager.getNotifications()
 
     fun getLastFlavor(): Flow<String> = dataStoreManager.getLastFlavor()
     fun getLastTopping(): Flow<String> = dataStoreManager.getLastTopping()
@@ -25,6 +27,7 @@ class AppRepository(
     suspend fun getUserEmailValue(): String = dataStoreManager.getUserEmail().first()
     suspend fun getUserPasswordValue(): String = dataStoreManager.getUserPassword().first()
     suspend fun getOrdersValue(): List<Order> = dataStoreManager.getOrders().first()
+    suspend fun getNotificationsValue(): List<Notification> = dataStoreManager.getNotifications().first()
 
     suspend fun setLoggedIn(value: Boolean) {
         dataStoreManager.saveLoginState(value)
@@ -62,5 +65,13 @@ class AppRepository(
 
     suspend fun saveOrders(orders: List<Order>) {
         dataStoreManager.saveOrders(orders)
+    }
+
+    suspend fun saveNotifications(notifications: List<Notification>) {
+        dataStoreManager.saveNotifications(notifications)
+    }
+
+    suspend fun saveUserEmail(email: String) {
+        dataStoreManager.saveUserEmail(email)
     }
 }

@@ -30,23 +30,23 @@ sealed class AppScreens(val route: String) {
 
     data object PhotoBooth : AppScreens("photo_booth")
 
-    data object PaymentSuccess :
-        AppScreens("payment_success")
+    data object PaymentSuccess : AppScreens("payment_success")
 
-    data object Tracking :
-        AppScreens("tracking")
+    data object Tracking : AppScreens("tracking")
 
-    data object AdminDashboard :
-        AppScreens("admin_dashboard")
+    data object Notifications : AppScreens("notifications")
 
-    data object AdminActiveProducts :
-        AppScreens("admin_active_products")
+    data object AdminDashboard : AppScreens("admin_dashboard")
 
-    data object AdminCreateProduct :
-        AppScreens("admin_create_product")
+    data object AdminActiveProducts : AppScreens("admin_active_products")
 
-    data object CategoryMenu :
-        AppScreens("category_menu/{category}") {
+    data object AdminCreateProduct : AppScreens("admin_create_product")
+
+    data object AdminSalesHistory : AppScreens("admin_sales_history")
+
+    data object AdminConfirmation : AppScreens("admin_confirmation")
+
+    data object CategoryMenu : AppScreens("category_menu/{category}") {
 
         fun createRoute(category: String) =
             "category_menu/$category"

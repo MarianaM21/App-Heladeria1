@@ -28,12 +28,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -60,7 +63,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.rememberNavController
+import com.example.appheladeria.components.AppBottomBar
+import com.example.appheladeria.navigation.AppScreens
+import com.example.appheladeria.ui.theme.AppHeladeriaTheme
 import com.example.appheladeria.ui.theme.BackgroundSoft
 import com.example.appheladeria.ui.theme.PrimaryPink
 import com.example.appheladeria.ui.theme.SecondaryPink
@@ -80,6 +88,7 @@ fun HomeScreen(
     userName: String,
     cartCount: Int,
     cartTotal: Float,
+    unreadNotifications: Int,
     onAddPromo: () -> Unit,
     onLogout: () -> Unit,
     onGoCart: () -> Unit,
@@ -88,6 +97,7 @@ fun HomeScreen(
     onGoQr: () -> Unit,
     onGoPhotoBooth: () -> Unit,
     onGoReferral: () -> Unit,
+    onGoNotifications: () -> Unit,
     onGoCategory: (String) -> Unit,
     onAddTrending: (IceCream) -> Unit
 ) {
@@ -183,8 +193,6 @@ fun HomeScreen(
                                 overflow = TextOverflow.Ellipsis
                             )
 
-                            Spacer(modifier = Modifier.height(2.dp))
-
                             Text(
                                 text = "👋",
                                 style = MaterialTheme.typography.headlineSmall
@@ -200,14 +208,44 @@ fun HomeScreen(
                             )
                         }
 
-                        IconButton(
-                            onClick = onLogout
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.ExitToApp,
-                                contentDescription = "Cerrar sesión",
-                                tint = TextDark
-                            )
+
+                            IconButton(
+                                onClick = onGoNotifications
+                            ) {
+                                BadgedBox(
+                                    badge = {
+                                        if (unreadNotifications > 0) {
+                                            Badge(
+                                                containerColor = PrimaryPink
+                                            ) {
+                                                Text(
+                                                    text = unreadNotifications.toString(),
+                                                    color = Color.White
+                                                )
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Notifications,
+                                        contentDescription = "Notificaciones",
+                                        tint = TextDark
+                                    )
+                                }
+                            }
+
+                            IconButton(
+                                onClick = onLogout
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ExitToApp,
+                                    contentDescription = "Cerrar sesión",
+                                    tint = TextDark
+                                )
+                            }
                         }
                     }
 
@@ -666,6 +704,46 @@ private fun TrendingCard(
                         fontWeight = FontWeight.ExtraBold
                     )
                 }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun HomeScreenPreview() {
+    val navController = rememberNavController()
+
+    AppHeladeriaTheme {
+        Scaffold(
+            bottomBar = {
+                AppBottomBar(
+                    navController = navController,
+                    currentRoute = AppScreens.Home.route
+                )
+            }
+        ) { paddingValues ->
+
+            Box(
+                modifier = Modifier.padding(paddingValues)
+            ) {
+                HomeScreen(
+                    userName = "Mariana",
+                    cartCount = 2,
+                    cartTotal = 12.5f,
+                    unreadNotifications = 3,
+                    onAddPromo = {},
+                    onLogout = {},
+                    onGoCart = {},
+                    onGoProfile = {},
+                    onGoOrders = {},
+                    onGoQr = {},
+                    onGoPhotoBooth = {},
+                    onGoReferral = {},
+                    onGoNotifications = {},
+                    onGoCategory = {},
+                    onAddTrending = {}
+                )
             }
         }
     }

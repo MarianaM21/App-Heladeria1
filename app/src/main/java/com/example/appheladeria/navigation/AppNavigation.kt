@@ -1,12 +1,25 @@
 package com.example.appheladeria.navigation
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -40,7 +53,6 @@ fun AppNavigation(
     navController: NavHostController,
     viewModel: AppViewModel
 ) {
-
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -61,31 +73,26 @@ fun AppNavigation(
     val lastTopping by viewModel.lastTopping.collectAsState()
     val lastSize by viewModel.lastSize.collectAsState()
 
+    val unreadNotifications = 3
+
     LaunchedEffect(loginSuccess) {
-
         if (loginSuccess == true) {
-
             delay(1200)
 
             if (userEmail == "admin@heladeria.com") {
-
                 navController.navigate(
                     AppScreens.AdminDashboard.route
                 ) {
-
                     popUpTo(AppScreens.Login.route) {
                         inclusive = true
                     }
 
                     launchSingleTop = true
                 }
-
             } else {
-
                 navController.navigate(
                     AppScreens.Home.route
                 ) {
-
                     popUpTo(AppScreens.Login.route) {
                         inclusive = true
                     }
@@ -99,9 +106,7 @@ fun AppNavigation(
     }
 
     Scaffold(
-
         bottomBar = {
-
             val hideBottomBarRoutes = listOf(
                 AppScreens.Splash.route,
                 AppScreens.Welcome.route,
@@ -110,19 +115,20 @@ fun AppNavigation(
                 AppScreens.AdminDashboard.route,
                 AppScreens.AdminActiveProducts.route,
                 AppScreens.AdminCreateProduct.route,
+                AppScreens.AdminSalesHistory.route,
+                AppScreens.AdminConfirmation.route,
                 AppScreens.PhotoBooth.route,
-                AppScreens.Promotions.route
+                AppScreens.Promotions.route,
+                AppScreens.Notifications.route
             )
 
             if (currentRoute !in hideBottomBarRoutes) {
-
                 AppBottomBar(
                     navController = navController,
                     currentRoute = currentRoute
                 )
             }
         }
-
     ) { paddingValues ->
 
         NavHost(
@@ -132,15 +138,11 @@ fun AppNavigation(
         ) {
 
             composable(AppScreens.Splash.route) {
-
                 SplashScreen(
-
                     onFinish = {
-
                         navController.navigate(
                             AppScreens.Welcome.route
                         ) {
-
                             popUpTo(AppScreens.Splash.route) {
                                 inclusive = true
                             }
@@ -150,18 +152,14 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Welcome.route) {
-
                 WelcomeScreen(
-
                     onGoLogin = {
-
                         navController.navigate(
                             AppScreens.Login.route
                         )
                     },
 
                     onGoRegister = {
-
                         navController.navigate(
                             AppScreens.Register.route
                         )
@@ -170,20 +168,15 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Login.route) {
-
                 LoginScreen(
-
                     loginError = loginError,
-
                     isLoggingIn = isLoggingIn,
 
                     onLogin = { email, password ->
-
                         viewModel.login(email, password)
                     },
 
                     onGoRegister = {
-
                         navController.navigate(
                             AppScreens.Register.route
                         )
@@ -192,15 +185,8 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Register.route) {
-
                 RegisterScreen(
-
-                    onRegister = {
-                            name,
-                            email,
-                            password,
-                            phone ->
-
+                    onRegister = { name, email, password, phone ->
                         viewModel.register(
                             name,
                             email,
@@ -211,7 +197,6 @@ fun AppNavigation(
                         navController.navigate(
                             AppScreens.Home.route
                         ) {
-
                             popUpTo(AppScreens.Register.route) {
                                 inclusive = true
                             }
@@ -225,7 +210,6 @@ fun AppNavigation(
                     },
 
                     onGoLogin = {
-
                         navController.navigate(
                             AppScreens.Login.route
                         )
@@ -234,27 +218,22 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Home.route) {
-
                 HomeScreen(
-
                     userName = userName,
-
                     cartCount = cartCount,
-
                     cartTotal = cartTotal,
+                    unreadNotifications = unreadNotifications,
 
                     onAddPromo = {
                         viewModel.addDemoProductToCart()
                     },
 
                     onLogout = {
-
                         viewModel.logout()
 
                         navController.navigate(
                             AppScreens.Login.route
                         ) {
-
                             popUpTo(AppScreens.Home.route) {
                                 inclusive = true
                             }
@@ -264,56 +243,54 @@ fun AppNavigation(
                     },
 
                     onGoCart = {
-
                         navController.navigate(
                             AppScreens.Cart.route
                         )
                     },
 
                     onGoProfile = {
-
                         navController.navigate(
                             AppScreens.Profile.route
                         )
                     },
 
                     onGoOrders = {
-
                         navController.navigate(
                             AppScreens.Orders.route
                         )
                     },
 
                     onGoQr = {
-
                         navController.navigate(
                             AppScreens.QrScanner.route
                         )
                     },
 
                     onGoPhotoBooth = {
-
                         navController.navigate(
                             AppScreens.PhotoBooth.route
                         )
                     },
 
                     onGoReferral = {
-
                         navController.navigate(
                             AppScreens.Referral.route
                         )
                     },
 
-                    onGoCategory = { category ->
+                    onGoNotifications = {
+                        navController.navigate(
+                            AppScreens.Notifications.route
+                        )
+                    },
 
+                    onGoCategory = { category ->
                         navController.navigate(
                             AppScreens.CategoryMenu.createRoute(category)
                         )
                     },
 
                     onAddTrending = { item ->
-
                         viewModel.addCustomProductToCart(
                             item.name,
                             "Ninguno",
@@ -324,16 +301,21 @@ fun AppNavigation(
                 )
             }
 
-            composable(AppScreens.CategoryMenu.route) {
+            composable(AppScreens.Notifications.route) {
+                NotificationsPlaceholderScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
 
-                    backStackEntry ->
+            composable(AppScreens.CategoryMenu.route) { backStackEntry ->
 
                 val category =
                     backStackEntry.arguments
                         ?.getString("category") ?: ""
 
                 CategoryMenuScreen(
-
                     category = category,
 
                     onBack = {
@@ -341,7 +323,6 @@ fun AppNavigation(
                     },
 
                     onSelectItem = { item ->
-
                         viewModel.saveSelection(
                             item.name,
                             "Ninguno",
@@ -356,16 +337,12 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Customize.route) {
-
                 CustomizeScreen(
-
                     initialFlavor =
                         lastFlavor.ifBlank { "Vainilla" },
 
                     initialTopping =
-                        lastTopping.ifBlank {
-                            "Rainbow Sprinkles"
-                        },
+                        lastTopping.ifBlank { "Rainbow Sprinkles" },
 
                     initialSize =
                         lastSize.ifBlank { "M" },
@@ -375,18 +352,12 @@ fun AppNavigation(
                     },
 
                     onGoFlavors = {
-
                         navController.navigate(
                             AppScreens.Flavors.route
                         )
                     },
 
-                    onAddToCart = {
-                            flavor,
-                            topping,
-                            size,
-                            price ->
-
+                    onAddToCart = { flavor, topping, size, price ->
                         viewModel.addCustomProductToCart(
                             flavor,
                             topping,
@@ -402,15 +373,12 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Flavors.route) {
-
                 FlavorsScreen(
-
                     onBack = {
                         navController.popBackStack()
                     },
 
                     onSelectFlavor = { flavor ->
-
                         viewModel.saveSelection(
                             flavor,
                             lastTopping,
@@ -423,13 +391,9 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Cart.route) {
-
                 CartScreen(
-
                     cartItems = cartItems,
-
                     cartCount = cartCount,
-
                     cartTotal = cartTotal,
 
                     onBack = {
@@ -437,7 +401,6 @@ fun AppNavigation(
                     },
 
                     onPayNow = {
-
                         viewModel.createSampleOrder()
 
                         navController.navigate(
@@ -446,28 +409,23 @@ fun AppNavigation(
                     },
 
                     onRemoveItem = { index ->
-
                         viewModel.removeCartItem(index)
                     }
                 )
             }
 
             composable(AppScreens.Profile.route) {
-
                 ProfileScreen(
-
                     userName = userName,
                     userEmail = userEmail,
                     userPhone = userPhone,
 
                     onLogout = {
-
                         viewModel.logout()
 
                         navController.navigate(
                             AppScreens.Login.route
                         ) {
-
                             popUpTo(AppScreens.Home.route) {
                                 inclusive = true
                             }
@@ -479,9 +437,7 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Orders.route) {
-
                 OrdersScreen(
-
                     orders = orders,
 
                     onBack = {
@@ -491,19 +447,15 @@ fun AppNavigation(
             }
 
             composable(AppScreens.QrScanner.route) {
-
                 QrScannerScreen(
-
                     onBack = {
                         navController.popBackStack()
                     },
 
                     onPromoDetected = {
-
                         navController.navigate(
                             AppScreens.Promotions.route
                         ) {
-
                             popUpTo(AppScreens.QrScanner.route) {
                                 inclusive = true
                             }
@@ -515,9 +467,7 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Promotions.route) {
-
                 PromotionsScreen(
-
                     onBack = {
                         navController.navigate(
                             AppScreens.Home.route
@@ -527,7 +477,6 @@ fun AppNavigation(
                     },
 
                     onAddPromotion = { promotion ->
-
                         viewModel.addCustomProductToCart(
                             promotion.name,
                             "Promoción",
@@ -537,7 +486,6 @@ fun AppNavigation(
                     },
 
                     onGoCart = {
-
                         navController.navigate(
                             AppScreens.Cart.route
                         )
@@ -546,9 +494,7 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Referral.route) {
-
                 ReferralScreen(
-
                     onBack = {
                         navController.popBackStack()
                     }
@@ -556,9 +502,7 @@ fun AppNavigation(
             }
 
             composable(AppScreens.PhotoBooth.route) {
-
                 PhotoBoothScreen(
-
                     onBack = {
                         navController.popBackStack()
                     }
@@ -566,26 +510,21 @@ fun AppNavigation(
             }
 
             composable(AppScreens.PaymentSuccess.route) {
-
                 PaymentSuccessScreen(
-
                     paidTotal = cartTotal + 5f,
 
                     onGoTracking = {
-
                         navController.navigate(
                             AppScreens.Tracking.route
                         )
                     },
 
                     onGoHome = {
-
                         viewModel.clearCart()
 
                         navController.navigate(
                             AppScreens.Home.route
                         ) {
-
                             popUpTo(AppScreens.Home.route) {
                                 inclusive = true
                             }
@@ -597,19 +536,15 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Tracking.route) {
-
                 TrackingScreen(
-
                     onBack = {
                         navController.popBackStack()
                     },
 
                     onGoHome = {
-
                         navController.navigate(
                             AppScreens.Home.route
                         ) {
-
                             popUpTo(AppScreens.Home.route) {
                                 inclusive = true
                             }
@@ -621,11 +556,8 @@ fun AppNavigation(
             }
 
             composable(AppScreens.AdminDashboard.route) {
-
                 AdminDashboardScreen(
-
                     onGoCreateProduct = {
-
                         navController.navigate(
                             AppScreens.AdminCreateProduct.route
                         )
@@ -634,15 +566,12 @@ fun AppNavigation(
             }
 
             composable(AppScreens.AdminActiveProducts.route) {
-
                 ActiveProductsScreen(
-
                     onBack = {
                         navController.popBackStack()
                     },
 
                     onAddNewProduct = {
-
                         navController.navigate(
                             AppScreens.AdminCreateProduct.route
                         )
@@ -651,21 +580,110 @@ fun AppNavigation(
             }
 
             composable(AppScreens.AdminCreateProduct.route) {
-
                 CreateProductScreen(
-
                     onBack = {
                         navController.popBackStack()
                     },
 
                     onProductCreated = {
-
                         navController.navigate(
                             AppScreens.AdminDashboard.route
                         )
                     }
                 )
             }
+
+            composable(AppScreens.AdminSalesHistory.route) {
+                AdminPlaceholderScreen(
+                    title = "Historial de ventas",
+                    message = "Pantalla administrativa agregada por tu compañera.",
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(AppScreens.AdminConfirmation.route) {
+                AdminPlaceholderScreen(
+                    title = "Confirmación",
+                    message = "Pantalla de confirmación administrativa.",
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationsPlaceholderScreen(
+    onBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Notificaciones",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.ExtraBold
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Tienes promociones, pedidos y novedades pendientes."
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = onBack
+        ) {
+            Text("Volver")
+        }
+    }
+}
+
+@Composable
+private fun AdminPlaceholderScreen(
+    title: String,
+    message: String,
+    onBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.ExtraBold
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = message
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = onBack
+        ) {
+            Text("Volver")
         }
     }
 }
