@@ -23,7 +23,9 @@ import com.example.appheladeria.screens.HomeScreen
 import com.example.appheladeria.screens.LoginScreen
 import com.example.appheladeria.screens.OrdersScreen
 import com.example.appheladeria.screens.PaymentSuccessScreen
+import com.example.appheladeria.screens.PhotoBoothScreen
 import com.example.appheladeria.screens.ProfileScreen
+import com.example.appheladeria.screens.PromotionsScreen
 import com.example.appheladeria.screens.QrScannerScreen
 import com.example.appheladeria.screens.ReferralScreen
 import com.example.appheladeria.screens.RegisterScreen
@@ -38,6 +40,7 @@ fun AppNavigation(
     navController: NavHostController,
     viewModel: AppViewModel
 ) {
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -59,17 +62,34 @@ fun AppNavigation(
     val lastSize by viewModel.lastSize.collectAsState()
 
     LaunchedEffect(loginSuccess) {
+
         if (loginSuccess == true) {
+
             delay(1200)
 
             if (userEmail == "admin@heladeria.com") {
-                navController.navigate(AppScreens.AdminDashboard.route) {
-                    popUpTo(AppScreens.Login.route) { inclusive = true }
+
+                navController.navigate(
+                    AppScreens.AdminDashboard.route
+                ) {
+
+                    popUpTo(AppScreens.Login.route) {
+                        inclusive = true
+                    }
+
                     launchSingleTop = true
                 }
+
             } else {
-                navController.navigate(AppScreens.Home.route) {
-                    popUpTo(AppScreens.Login.route) { inclusive = true }
+
+                navController.navigate(
+                    AppScreens.Home.route
+                ) {
+
+                    popUpTo(AppScreens.Login.route) {
+                        inclusive = true
+                    }
+
                     launchSingleTop = true
                 }
             }
@@ -79,7 +99,9 @@ fun AppNavigation(
     }
 
     Scaffold(
+
         bottomBar = {
+
             val hideBottomBarRoutes = listOf(
                 AppScreens.Splash.route,
                 AppScreens.Welcome.route,
@@ -87,90 +109,211 @@ fun AppNavigation(
                 AppScreens.Register.route,
                 AppScreens.AdminDashboard.route,
                 AppScreens.AdminActiveProducts.route,
-                AppScreens.AdminCreateProduct.route
+                AppScreens.AdminCreateProduct.route,
+                AppScreens.PhotoBooth.route,
+                AppScreens.Promotions.route
             )
 
             if (currentRoute !in hideBottomBarRoutes) {
+
                 AppBottomBar(
                     navController = navController,
                     currentRoute = currentRoute
                 )
             }
         }
+
     ) { paddingValues ->
+
         NavHost(
             navController = navController,
             startDestination = AppScreens.Splash.route,
             modifier = Modifier.padding(paddingValues)
         ) {
+
             composable(AppScreens.Splash.route) {
+
                 SplashScreen(
+
                     onFinish = {
-                        navController.navigate(AppScreens.Welcome.route) {
-                            popUpTo(AppScreens.Splash.route) { inclusive = true }
+
+                        navController.navigate(
+                            AppScreens.Welcome.route
+                        ) {
+
+                            popUpTo(AppScreens.Splash.route) {
+                                inclusive = true
+                            }
                         }
                     }
                 )
             }
 
             composable(AppScreens.Welcome.route) {
+
                 WelcomeScreen(
-                    onGoLogin = { navController.navigate(AppScreens.Login.route) },
-                    onGoRegister = { navController.navigate(AppScreens.Register.route) }
+
+                    onGoLogin = {
+
+                        navController.navigate(
+                            AppScreens.Login.route
+                        )
+                    },
+
+                    onGoRegister = {
+
+                        navController.navigate(
+                            AppScreens.Register.route
+                        )
+                    }
                 )
             }
 
             composable(AppScreens.Login.route) {
+
                 LoginScreen(
+
                     loginError = loginError,
+
                     isLoggingIn = isLoggingIn,
+
                     onLogin = { email, password ->
+
                         viewModel.login(email, password)
                     },
+
                     onGoRegister = {
-                        navController.navigate(AppScreens.Register.route)
+
+                        navController.navigate(
+                            AppScreens.Register.route
+                        )
                     }
                 )
             }
 
             composable(AppScreens.Register.route) {
+
                 RegisterScreen(
-                    onRegister = { name, email, password, phone ->
-                        viewModel.register(name, email, password, phone)
-                        navController.navigate(AppScreens.Home.route) {
-                            popUpTo(AppScreens.Register.route) { inclusive = true }
+
+                    onRegister = {
+                            name,
+                            email,
+                            password,
+                            phone ->
+
+                        viewModel.register(
+                            name,
+                            email,
+                            password,
+                            phone
+                        )
+
+                        navController.navigate(
+                            AppScreens.Home.route
+                        ) {
+
+                            popUpTo(AppScreens.Register.route) {
+                                inclusive = true
+                            }
+
                             launchSingleTop = true
                         }
                     },
-                    onBack = { navController.popBackStack() },
+
+                    onBack = {
+                        navController.popBackStack()
+                    },
+
                     onGoLogin = {
-                        navController.navigate(AppScreens.Login.route)
+
+                        navController.navigate(
+                            AppScreens.Login.route
+                        )
                     }
                 )
             }
 
             composable(AppScreens.Home.route) {
+
                 HomeScreen(
+
                     userName = userName,
+
                     cartCount = cartCount,
+
                     cartTotal = cartTotal,
-                    onAddPromo = { viewModel.addDemoProductToCart() },
+
+                    onAddPromo = {
+                        viewModel.addDemoProductToCart()
+                    },
+
                     onLogout = {
+
                         viewModel.logout()
-                        navController.navigate(AppScreens.Login.route) {
-                            popUpTo(AppScreens.Home.route) { inclusive = true }
+
+                        navController.navigate(
+                            AppScreens.Login.route
+                        ) {
+
+                            popUpTo(AppScreens.Home.route) {
+                                inclusive = true
+                            }
+
                             launchSingleTop = true
                         }
                     },
-                    onGoCart = { navController.navigate(AppScreens.Cart.route) },
-                    onGoProfile = { navController.navigate(AppScreens.Profile.route) },
-                    onGoOrders = { navController.navigate(AppScreens.Orders.route) },
-                    onGoQr = { navController.navigate(AppScreens.QrScanner.route) },
-                    onGoReferral = { navController.navigate(AppScreens.Referral.route) },
-                    onGoCategory = { category ->
-                        navController.navigate(AppScreens.CategoryMenu.createRoute(category))
+
+                    onGoCart = {
+
+                        navController.navigate(
+                            AppScreens.Cart.route
+                        )
                     },
+
+                    onGoProfile = {
+
+                        navController.navigate(
+                            AppScreens.Profile.route
+                        )
+                    },
+
+                    onGoOrders = {
+
+                        navController.navigate(
+                            AppScreens.Orders.route
+                        )
+                    },
+
+                    onGoQr = {
+
+                        navController.navigate(
+                            AppScreens.QrScanner.route
+                        )
+                    },
+
+                    onGoPhotoBooth = {
+
+                        navController.navigate(
+                            AppScreens.PhotoBooth.route
+                        )
+                    },
+
+                    onGoReferral = {
+
+                        navController.navigate(
+                            AppScreens.Referral.route
+                        )
+                    },
+
+                    onGoCategory = { category ->
+
+                        navController.navigate(
+                            AppScreens.CategoryMenu.createRoute(category)
+                        )
+                    },
+
                     onAddTrending = { item ->
+
                         viewModel.addCustomProductToCart(
                             item.name,
                             "Ninguno",
@@ -181,72 +324,154 @@ fun AppNavigation(
                 )
             }
 
-            composable(AppScreens.CategoryMenu.route) { backStackEntry ->
-                val category = backStackEntry.arguments?.getString("category") ?: ""
+            composable(AppScreens.CategoryMenu.route) {
+
+                    backStackEntry ->
+
+                val category =
+                    backStackEntry.arguments
+                        ?.getString("category") ?: ""
 
                 CategoryMenuScreen(
+
                     category = category,
-                    onBack = { navController.popBackStack() },
+
+                    onBack = {
+                        navController.popBackStack()
+                    },
+
                     onSelectItem = { item ->
+
                         viewModel.saveSelection(
                             item.name,
                             "Ninguno",
                             "M"
                         )
-                        navController.navigate(AppScreens.Customize.route)
+
+                        navController.navigate(
+                            AppScreens.Customize.route
+                        )
                     }
                 )
             }
 
             composable(AppScreens.Customize.route) {
+
                 CustomizeScreen(
-                    initialFlavor = lastFlavor.ifBlank { "Vainilla" },
-                    initialTopping = lastTopping.ifBlank { "Rainbow Sprinkles" },
-                    initialSize = lastSize.ifBlank { "M" },
-                    onBack = { navController.popBackStack() },
-                    onGoFlavors = { navController.navigate(AppScreens.Flavors.route) },
-                    onAddToCart = { flavor, topping, size, price ->
-                        viewModel.addCustomProductToCart(flavor, topping, size, price)
-                        navController.navigate(AppScreens.Cart.route)
+
+                    initialFlavor =
+                        lastFlavor.ifBlank { "Vainilla" },
+
+                    initialTopping =
+                        lastTopping.ifBlank {
+                            "Rainbow Sprinkles"
+                        },
+
+                    initialSize =
+                        lastSize.ifBlank { "M" },
+
+                    onBack = {
+                        navController.popBackStack()
+                    },
+
+                    onGoFlavors = {
+
+                        navController.navigate(
+                            AppScreens.Flavors.route
+                        )
+                    },
+
+                    onAddToCart = {
+                            flavor,
+                            topping,
+                            size,
+                            price ->
+
+                        viewModel.addCustomProductToCart(
+                            flavor,
+                            topping,
+                            size,
+                            price
+                        )
+
+                        navController.navigate(
+                            AppScreens.Cart.route
+                        )
                     }
                 )
             }
 
             composable(AppScreens.Flavors.route) {
+
                 FlavorsScreen(
-                    onBack = { navController.popBackStack() },
+
+                    onBack = {
+                        navController.popBackStack()
+                    },
+
                     onSelectFlavor = { flavor ->
-                        viewModel.saveSelection(flavor, lastTopping, lastSize)
+
+                        viewModel.saveSelection(
+                            flavor,
+                            lastTopping,
+                            lastSize
+                        )
+
                         navController.popBackStack()
                     }
                 )
             }
 
             composable(AppScreens.Cart.route) {
+
                 CartScreen(
+
                     cartItems = cartItems,
+
                     cartCount = cartCount,
+
                     cartTotal = cartTotal,
-                    onBack = { navController.popBackStack() },
-                    onPayNow = {
-                        viewModel.createSampleOrder()
-                        navController.navigate(AppScreens.PaymentSuccess.route)
+
+                    onBack = {
+                        navController.popBackStack()
                     },
+
+                    onPayNow = {
+
+                        viewModel.createSampleOrder()
+
+                        navController.navigate(
+                            AppScreens.PaymentSuccess.route
+                        )
+                    },
+
                     onRemoveItem = { index ->
+
                         viewModel.removeCartItem(index)
                     }
                 )
             }
 
             composable(AppScreens.Profile.route) {
+
                 ProfileScreen(
+
                     userName = userName,
                     userEmail = userEmail,
                     userPhone = userPhone,
+
                     onLogout = {
+
                         viewModel.logout()
-                        navController.navigate(AppScreens.Login.route) {
-                            popUpTo(AppScreens.Home.route) { inclusive = true }
+
+                        navController.navigate(
+                            AppScreens.Login.route
+                        ) {
+
+                            popUpTo(AppScreens.Home.route) {
+                                inclusive = true
+                            }
+
                             launchSingleTop = true
                         }
                     }
@@ -254,34 +479,117 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Orders.route) {
+
                 OrdersScreen(
+
                     orders = orders,
-                    onBack = { navController.popBackStack() }
+
+                    onBack = {
+                        navController.popBackStack()
+                    }
                 )
             }
 
             composable(AppScreens.QrScanner.route) {
+
                 QrScannerScreen(
-                    onBack = { navController.popBackStack() }
+
+                    onBack = {
+                        navController.popBackStack()
+                    },
+
+                    onPromoDetected = {
+
+                        navController.navigate(
+                            AppScreens.Promotions.route
+                        ) {
+
+                            popUpTo(AppScreens.QrScanner.route) {
+                                inclusive = true
+                            }
+
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
+            composable(AppScreens.Promotions.route) {
+
+                PromotionsScreen(
+
+                    onBack = {
+                        navController.navigate(
+                            AppScreens.Home.route
+                        ) {
+                            launchSingleTop = true
+                        }
+                    },
+
+                    onAddPromotion = { promotion ->
+
+                        viewModel.addCustomProductToCart(
+                            promotion.name,
+                            "Promoción",
+                            promotion.tag,
+                            promotion.price
+                        )
+                    },
+
+                    onGoCart = {
+
+                        navController.navigate(
+                            AppScreens.Cart.route
+                        )
+                    }
                 )
             }
 
             composable(AppScreens.Referral.route) {
+
                 ReferralScreen(
-                    onBack = { navController.popBackStack() }
+
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable(AppScreens.PhotoBooth.route) {
+
+                PhotoBoothScreen(
+
+                    onBack = {
+                        navController.popBackStack()
+                    }
                 )
             }
 
             composable(AppScreens.PaymentSuccess.route) {
+
                 PaymentSuccessScreen(
+
                     paidTotal = cartTotal + 5f,
+
                     onGoTracking = {
-                        navController.navigate(AppScreens.Tracking.route)
+
+                        navController.navigate(
+                            AppScreens.Tracking.route
+                        )
                     },
+
                     onGoHome = {
+
                         viewModel.clearCart()
-                        navController.navigate(AppScreens.Home.route) {
-                            popUpTo(AppScreens.Home.route) { inclusive = true }
+
+                        navController.navigate(
+                            AppScreens.Home.route
+                        ) {
+
+                            popUpTo(AppScreens.Home.route) {
+                                inclusive = true
+                            }
+
                             launchSingleTop = true
                         }
                     }
@@ -289,11 +597,23 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Tracking.route) {
+
                 TrackingScreen(
-                    onBack = { navController.popBackStack() },
+
+                    onBack = {
+                        navController.popBackStack()
+                    },
+
                     onGoHome = {
-                        navController.navigate(AppScreens.Home.route) {
-                            popUpTo(AppScreens.Home.route) { inclusive = true }
+
+                        navController.navigate(
+                            AppScreens.Home.route
+                        ) {
+
+                            popUpTo(AppScreens.Home.route) {
+                                inclusive = true
+                            }
+
                             launchSingleTop = true
                         }
                     }
@@ -301,27 +621,48 @@ fun AppNavigation(
             }
 
             composable(AppScreens.AdminDashboard.route) {
+
                 AdminDashboardScreen(
+
                     onGoCreateProduct = {
-                        navController.navigate(AppScreens.AdminCreateProduct.route)
+
+                        navController.navigate(
+                            AppScreens.AdminCreateProduct.route
+                        )
                     }
                 )
             }
 
             composable(AppScreens.AdminActiveProducts.route) {
+
                 ActiveProductsScreen(
-                    onBack = { navController.popBackStack() },
+
+                    onBack = {
+                        navController.popBackStack()
+                    },
+
                     onAddNewProduct = {
-                        navController.navigate(AppScreens.AdminCreateProduct.route)
+
+                        navController.navigate(
+                            AppScreens.AdminCreateProduct.route
+                        )
                     }
                 )
             }
 
             composable(AppScreens.AdminCreateProduct.route) {
+
                 CreateProductScreen(
-                    onBack = { navController.popBackStack() },
+
+                    onBack = {
+                        navController.popBackStack()
+                    },
+
                     onProductCreated = {
-                        navController.navigate(AppScreens.AdminDashboard.route)
+
+                        navController.navigate(
+                            AppScreens.AdminDashboard.route
+                        )
                     }
                 )
             }
