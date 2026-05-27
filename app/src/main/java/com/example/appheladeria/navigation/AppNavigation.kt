@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -28,12 +30,14 @@ import com.example.appheladeria.admin.ActiveProductsScreen
 import com.example.appheladeria.admin.AdminDashboardScreen
 import com.example.appheladeria.admin.CreateProductScreen
 import com.example.appheladeria.components.AppBottomBar
+import com.example.appheladeria.data.model.Notification
 import com.example.appheladeria.screens.CartScreen
 import com.example.appheladeria.screens.CategoryMenuScreen
 import com.example.appheladeria.screens.CustomizeScreen
 import com.example.appheladeria.screens.FlavorsScreen
 import com.example.appheladeria.screens.HomeScreen
 import com.example.appheladeria.screens.LoginScreen
+import com.example.appheladeria.screens.NotificationsScreen
 import com.example.appheladeria.screens.OrdersScreen
 import com.example.appheladeria.screens.PaymentSuccessScreen
 import com.example.appheladeria.screens.PhotoBoothScreen
@@ -73,7 +77,41 @@ fun AppNavigation(
     val lastTopping by viewModel.lastTopping.collectAsState()
     val lastSize by viewModel.lastSize.collectAsState()
 
-    val unreadNotifications = 3
+    val notifications = remember {
+        mutableStateListOf(
+            Notification(
+                id = "obligatoria_1",
+                title = "Notificación obligatoria",
+                message = "Antes de finalizar tu compra, revisa el sabor, tamaño, topping y total del pedido.",
+                timestamp = System.currentTimeMillis(),
+                isRead = false
+            ),
+            Notification(
+                id = "bienvenida_1",
+                title = "Bienvenido a Scoop & Smile",
+                message = "Gracias por ingresar. Explora sabores, promociones y pedidos recientes.",
+                timestamp = System.currentTimeMillis() - 60000,
+                isRead = false
+            ),
+            Notification(
+                id = "promo_1",
+                title = "Promoción secreta disponible",
+                message = "Escanea el código QR promocional para desbloquear ofertas especiales.",
+                timestamp = System.currentTimeMillis() - 120000,
+                isRead = false
+            ),
+            Notification(
+                id = "spot_1",
+                title = "Spot de fotos activo",
+                message = "Tómate una foto con tu helado, guárdala y compártela con tus amigos.",
+                timestamp = System.currentTimeMillis() - 180000,
+                isRead = false
+            )
+        )
+    }
+
+    val unreadNotifications =
+        notifications.count { !it.isRead }
 
     LaunchedEffect(loginSuccess) {
         if (loginSuccess == true) {
@@ -302,9 +340,20 @@ fun AppNavigation(
             }
 
             composable(AppScreens.Notifications.route) {
-                NotificationsPlaceholderScreen(
+                NotificationsScreen(
+                    notifications = notifications,
+
                     onBack = {
                         navController.popBackStack()
+                    },
+
+                    onMarkAsRead = {
+                        for (index in notifications.indices) {
+                            notifications[index] =
+                                notifications[index].copy(
+                                    isRead = true
+                                )
+                        }
                     }
                 )
             }
@@ -612,41 +661,6 @@ fun AppNavigation(
                     }
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun NotificationsPlaceholderScreen(
-    onBack: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Notificaciones",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.ExtraBold
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "Tienes promociones, pedidos y novedades pendientes."
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = onBack
-        ) {
-            Text("Volver")
         }
     }
 }
