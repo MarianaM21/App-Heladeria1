@@ -1,10 +1,8 @@
 package com.example.appheladeria.admin
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,15 +19,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.appheladeria.data.model.IceCreamItem
 import com.example.appheladeria.ui.theme.*
 
 @Composable
 fun AdminDashboardScreen(
-    onGoCreateProduct: () -> Unit = {}
+    products: List<IceCreamItem> = emptyList(),
+    onGoCreateProduct: () -> Unit = {},
+    onGoInventory: () -> Unit = {},
+    onGoOrders: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     Scaffold(
         topBar = { AdminTopBar() },
-        bottomBar = { AdminBottomBar() },
+        bottomBar = { 
+            AdminBottomBar(
+                currentRoute = "dashboard",
+                onGoInventory = onGoInventory,
+                onGoOrders = onGoOrders,
+                onGoDashboard = { /* Already here */ }
+            ) 
+        },
         containerColor = BackgroundSoft
     ) { paddingValues ->
         LazyColumn(
@@ -55,15 +65,19 @@ fun AdminDashboardScreen(
             }
 
             item {
-                SalesHistorySection()
+                SalesHistorySection(onClick = onGoOrders)
             }
 
             item {
-                ActiveProductsSection(onGoCreateProduct = onGoCreateProduct)
+                ActiveProductsSection(
+                    products = products.take(3),
+                    onGoCreateProduct = onGoCreateProduct,
+                    onViewAll = onGoInventory
+                )
             }
 
             item {
-                AccountManagementSection()
+                AccountManagementSection(onLogout = onLogout)
             }
         }
     }
@@ -129,7 +143,7 @@ fun StatCard(title: String, value: String, percentage: String, modifier: Modifie
 }
 
 @Composable
-fun SalesHistorySection() {
+fun SalesHistorySection(onClick: () -> Unit = {}) {
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -137,14 +151,15 @@ fun SalesHistorySection() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Historial de ventas", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextDark)
-            TextButton(onClick = { }) {
-                Text(text = "Reportes", color = PrimaryPink)
+            TextButton(onClick = onClick) {
+                Text(text = "Ver Pedidos", color = PrimaryPink)
             }
         }
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            onClick = onClick
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(text = "Ingresos Semanales", color = TextMuted, fontSize = 14.sp)
@@ -197,7 +212,11 @@ fun SimpleBarChart() {
 }
 
 @Composable
-fun ActiveProductsSection(onGoCreateProduct: () -> Unit) {
+fun ActiveProductsSection(
+    products: List<IceCreamItem>,
+    onGoCreateProduct: () -> Unit,
+    onViewAll: () -> Unit
+) {
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -218,9 +237,16 @@ fun ActiveProductsSection(onGoCreateProduct: () -> Unit) {
         }
         Spacer(modifier = Modifier.height(12.dp))
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ProductListItem("Berry Blast", "Inventario: 45 unidades", "$4.50")
-            ProductListItem("Midnight Fudge", "Inventario: 12 Unidades", "$5.25")
-            ProductListItem("Pistachio Dream", "Inventario: 30 Unidades", "$4.95")
+            if (products.isEmpty()) {
+                Text("No hay productos registrados", color = TextMuted, modifier = Modifier.padding(16.dp))
+            } else {
+                products.forEach { product ->
+                    ProductListItem(product.name, "Inventario: ${product.inventory} unidades", "$${product.price}")
+                }
+                TextButton(onClick = onViewAll, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                    Text("Ver todo el inventario", color = PrimaryPink)
+                }
+            }
         }
     }
 }
@@ -259,7 +285,7 @@ fun ProductListItem(name: String, inventory: String, price: String) {
 }
 
 @Composable
-fun AccountManagementSection() {
+fun AccountManagementSection(onLogout: () -> Unit) {
     Column {
         Text(text = "Gestión de cuentas", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = TextDark)
         Spacer(modifier = Modifier.height(12.dp))
@@ -273,62 +299,80 @@ fun AccountManagementSection() {
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), thickness = 0.5.dp, color = BackgroundSoft)
                 ManagementItem(Icons.Default.Security, "Configuración de seguridad")
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), thickness = 0.5.dp, color = BackgroundSoft)
-                ManagementItem(Icons.Default.Storefront, "Configuración de seguridad")
+                ManagementItem(Icons.Default.Storefront, "Configuración de la tienda")
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), thickness = 0.5.dp, color = BackgroundSoft)
-                ManagementItem(Icons.AutoMirrored.Filled.Logout, "Cerrar Sesión", isDestructive = true)
+                ManagementItem(Icons.AutoMirrored.Filled.Logout, "Cerrar Sesión", isDestructive = true, onClick = onLogout)
             }
         }
     }
 }
 
 @Composable
-fun ManagementItem(icon: ImageVector, title: String, isDestructive: Boolean = false) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 16.dp, horizontal = 20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+fun ManagementItem(
+    icon: ImageVector,
+    title: String,
+    isDestructive: Boolean = false,
+    onClick: () -> Unit = {}
+) {
+    Surface(
+        onClick = onClick,
+        color = Color.Transparent
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, contentDescription = null, tint = if (isDestructive) PrimaryPink else PrimaryPink, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(text = title, fontWeight = FontWeight.Medium, color = if (isDestructive) PrimaryPink else TextDark)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp, horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = null, tint = if (isDestructive) PrimaryPink else PrimaryPink, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(text = title, fontWeight = FontWeight.Medium, color = if (isDestructive) PrimaryPink else TextDark)
+            }
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = TextMuted, modifier = Modifier.size(20.dp))
         }
-        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = TextMuted, modifier = Modifier.size(20.dp))
     }
 }
 
 @Composable
-fun AdminBottomBar() {
+fun AdminBottomBar(
+    currentRoute: String = "dashboard",
+    onGoDashboard: () -> Unit = {},
+    onGoInventory: () -> Unit = {},
+    onGoOrders: () -> Unit = {}
+) {
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
     ) {
         NavigationBarItem(
-            selected = true,
-            onClick = { },
+            selected = currentRoute == "dashboard",
+            onClick = onGoDashboard,
             icon = { Icon(Icons.Default.Dashboard, contentDescription = null) },
             label = { Text("Dashboard") },
             colors = NavigationBarItemDefaults.colors(selectedIconColor = PrimaryPink, selectedTextColor = PrimaryPink, unselectedIconColor = TextMuted, unselectedTextColor = TextMuted, indicatorColor = Color.Transparent)
         )
         NavigationBarItem(
-            selected = false,
-            onClick = { },
+            selected = currentRoute == "inventario",
+            onClick = onGoInventory,
             icon = { Icon(Icons.Default.Inventory, contentDescription = null) },
-            label = { Text("Inventario") }
+            label = { Text("Inventario") },
+            colors = NavigationBarItemDefaults.colors(selectedIconColor = PrimaryPink, selectedTextColor = PrimaryPink, unselectedIconColor = TextMuted, unselectedTextColor = TextMuted, indicatorColor = Color.Transparent)
         )
         NavigationBarItem(
-            selected = false,
-            onClick = { },
+            selected = currentRoute == "pedidos",
+            onClick = onGoOrders,
             icon = { Icon(Icons.Default.ReceiptLong, contentDescription = null) },
-            label = { Text("Pedidos") }
+            label = { Text("Pedidos") },
+            colors = NavigationBarItemDefaults.colors(selectedIconColor = PrimaryPink, selectedTextColor = PrimaryPink, unselectedIconColor = TextMuted, unselectedTextColor = TextMuted, indicatorColor = Color.Transparent)
         )
         NavigationBarItem(
-            selected = false,
+            selected = currentRoute == "config",
             onClick = { },
             icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-            label = { Text("Configuración") }
+            label = { Text("Ajustes") },
+            colors = NavigationBarItemDefaults.colors(selectedIconColor = PrimaryPink, selectedTextColor = PrimaryPink, unselectedIconColor = TextMuted, unselectedTextColor = TextMuted, indicatorColor = Color.Transparent)
         )
     }
 }

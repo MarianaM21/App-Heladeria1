@@ -29,6 +29,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.appheladeria.admin.ActiveProductsScreen
 import com.example.appheladeria.admin.AdminDashboardScreen
 import com.example.appheladeria.admin.CreateProductScreen
+import com.example.appheladeria.admin.SalesHistoryScreen
 import com.example.appheladeria.components.AppBottomBar
 import com.example.appheladeria.data.model.Notification
 import com.example.appheladeria.screens.CartScreen
@@ -72,6 +73,7 @@ fun AppNavigation(
     val cartCount by viewModel.cartCount.collectAsState()
     val cartTotal by viewModel.cartTotal.collectAsState()
     val orders by viewModel.orders.collectAsState()
+    val products by viewModel.products.collectAsState()
 
     val lastFlavor by viewModel.lastFlavor.collectAsState()
     val lastTopping by viewModel.lastTopping.collectAsState()
@@ -606,24 +608,52 @@ fun AppNavigation(
 
             composable(AppScreens.AdminDashboard.route) {
                 AdminDashboardScreen(
+                    products = products,
                     onGoCreateProduct = {
                         navController.navigate(
                             AppScreens.AdminCreateProduct.route
                         )
+                    },
+                    onGoInventory = {
+                        navController.navigate(
+                            AppScreens.AdminActiveProducts.route
+                        )
+                    },
+                    onGoOrders = {
+                        navController.navigate(
+                            AppScreens.AdminSalesHistory.route
+                        )
+                    },
+                    onLogout = {
+                        viewModel.logout()
+                        navController.navigate(AppScreens.Login.route) {
+                            popUpTo(0)
+                        }
                     }
                 )
             }
 
             composable(AppScreens.AdminActiveProducts.route) {
                 ActiveProductsScreen(
+                    productsList = products,
                     onBack = {
                         navController.popBackStack()
                     },
-
                     onAddNewProduct = {
                         navController.navigate(
                             AppScreens.AdminCreateProduct.route
                         )
+                    },
+                    onGoDashboard = {
+                        navController.navigate(AppScreens.AdminDashboard.route) {
+                            popUpTo(AppScreens.AdminDashboard.route) { inclusive = true }
+                        }
+                    },
+                    onGoOrders = {
+                        navController.navigate(AppScreens.AdminSalesHistory.route)
+                    },
+                    onDeleteProduct = { product ->
+                         viewModel.removeProduct(product.id)
                     }
                 )
             }
@@ -633,21 +663,28 @@ fun AppNavigation(
                     onBack = {
                         navController.popBackStack()
                     },
-
-                    onProductCreated = {
-                        navController.navigate(
-                            AppScreens.AdminDashboard.route
-                        )
+                    onProductCreated = { name, stock, price ->
+                        viewModel.addProduct(name, price.toDouble(), "Helados", stock)
+                        navController.navigate(AppScreens.AdminDashboard.route) {
+                            popUpTo(AppScreens.AdminDashboard.route) { inclusive = true }
+                        }
                     }
                 )
             }
 
             composable(AppScreens.AdminSalesHistory.route) {
-                AdminPlaceholderScreen(
-                    title = "Historial de ventas",
-                    message = "Pantalla administrativa agregada por tu compañera.",
+                SalesHistoryScreen(
+                    orders = orders,
                     onBack = {
                         navController.popBackStack()
+                    },
+                    onGoInventory = {
+                        navController.navigate(AppScreens.AdminActiveProducts.route)
+                    },
+                    onGoDashboard = {
+                        navController.navigate(AppScreens.AdminDashboard.route) {
+                            popUpTo(AppScreens.AdminDashboard.route) { inclusive = true }
+                        }
                     }
                 )
             }

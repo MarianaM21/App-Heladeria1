@@ -10,6 +10,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.example.appheladeria.data.model.CartProduct
 import com.example.appheladeria.data.model.Order
 import com.example.appheladeria.data.model.Notification
+import com.example.appheladeria.data.model.IceCreamItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -34,6 +35,7 @@ class DataStoreManager(private val context: Context) {
         val CART_ITEMS = stringPreferencesKey("cart_items_json")
         val ORDERS = stringPreferencesKey("orders_json")
         val NOTIFICATIONS = stringPreferencesKey("notifications_json")
+        val PRODUCTS = stringPreferencesKey("products_json")
 
         val LAST_FLAVOR = stringPreferencesKey("last_flavor")
         val LAST_TOPPING = stringPreferencesKey("last_topping")
@@ -148,6 +150,22 @@ class DataStoreManager(private val context: Context) {
             val raw = preferences[NOTIFICATIONS] ?: "[]"
             try {
                 json.decodeFromString<List<Notification>>(raw)
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
+
+    suspend fun saveProducts(products: List<IceCreamItem>) {
+        context.dataStore.edit { preferences ->
+            preferences[PRODUCTS] = json.encodeToString(products)
+        }
+    }
+
+    fun getProducts(): Flow<List<IceCreamItem>> =
+        dataStoreFlow().map { preferences ->
+            val raw = preferences[PRODUCTS] ?: "[]"
+            try {
+                json.decodeFromString<List<IceCreamItem>>(raw)
             } catch (_: Exception) {
                 emptyList()
             }

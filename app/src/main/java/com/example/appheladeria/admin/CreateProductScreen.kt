@@ -26,7 +26,7 @@ import com.example.appheladeria.ui.theme.*
 @Composable
 fun CreateProductScreen(
     onBack: () -> Unit = {},
-    onProductCreated: (AdminProduct) -> Unit = {}
+    onProductCreated: (String, Int, Float) -> Unit = { _, _, _ -> }
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var stock by rememberSaveable { mutableStateOf("") }
@@ -36,7 +36,7 @@ fun CreateProductScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Create Product", fontWeight = FontWeight.Bold, color = TextDark) },
+                title = { Text("Crear Producto", fontWeight = FontWeight.Bold, color = TextDark) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextDark)
@@ -65,7 +65,7 @@ fun CreateProductScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.CameraAlt, contentDescription = null, tint = PrimaryPink, modifier = Modifier.size(32.dp))
-                    Text("Add Image", fontSize = 12.sp, color = PrimaryPink, fontWeight = FontWeight.Bold)
+                    Text("Añadir Imagen", fontSize = 12.sp, color = PrimaryPink, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -75,8 +75,8 @@ fun CreateProductScreen(
             AdminTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = "Product Name",
-                placeholder = "e.g. Vanilla Bean Classic"
+                label = "Nombre del Producto",
+                placeholder = "ej. Helado de Vainilla"
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -92,7 +92,7 @@ fun CreateProductScreen(
                 AdminTextField(
                     value = price,
                     onValueChange = { price = it },
-                    label = "Price ($)",
+                    label = "Precio ($)",
                     placeholder = "0.00",
                     modifier = Modifier.weight(1f)
                 )
@@ -103,8 +103,8 @@ fun CreateProductScreen(
             AdminTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = "Description",
-                placeholder = "Describe the product...",
+                label = "Descripción",
+                placeholder = "Describe el producto...",
                 singleLine = false,
                 modifier = Modifier.height(120.dp)
             )
@@ -116,7 +116,7 @@ fun CreateProductScreen(
                     val stockInt = stock.toIntOrNull() ?: 0
                     val priceFloat = price.toFloatOrNull() ?: 0f
                     if (name.isNotBlank()) {
-                        onProductCreated(AdminProduct(name, stockInt, priceFloat))
+                        onProductCreated(name, stockInt, priceFloat)
                     }
                 },
                 modifier = Modifier
@@ -125,7 +125,7 @@ fun CreateProductScreen(
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryPink)
             ) {
-                Text("Create Product", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("Crear Producto", fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

@@ -3,7 +3,7 @@ package com.example.appheladeria.admin
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,41 +19,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.appheladeria.data.model.IceCreamItem
 import com.example.appheladeria.ui.theme.*
-
-data class AdminProduct(
-    val name: String,
-    val stock: Int,
-    val price: Float
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActiveProductsScreen(
+    productsList: List<IceCreamItem> = emptyList(),
     onBack: () -> Unit = {},
     onAddNewProduct: () -> Unit = {},
-    onEditProduct: (AdminProduct) -> Unit = {}
+    onEditProduct: (IceCreamItem) -> Unit = {},
+    onDeleteProduct: (IceCreamItem) -> Unit = {},
+    onGoDashboard: () -> Unit = {},
+    onGoOrders: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
-    val products = remember {
-        mutableStateListOf(
-            AdminProduct("Vainilla", 120, 4.50f),
-            AdminProduct("Chocolate", 85, 5.00f),
-            AdminProduct("Fresa", 40, 4.75f),
-            AdminProduct("Menta de chocolate", 62, 4.95f),
-            AdminProduct("Caramelo Salteado", 12, 5.25f)
-        )
-    }
-
-    val filteredProducts = products.filter { 
+    val filteredProducts = productsList.filter { 
         it.name.contains(searchQuery, ignoreCase = true) 
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Productos Activos", fontWeight = FontWeight.Bold, color = TextDark) },
+                title = { Text("Inventario de Productos", fontWeight = FontWeight.Bold, color = TextDark) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextDark)
@@ -67,26 +56,24 @@ fun ActiveProductsScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-                    .navigationBarsPadding()
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddNewProduct,
+                containerColor = PrimaryPink,
+                contentColor = Color.White,
+                shape = CircleShape,
+                modifier = Modifier.padding(bottom = 16.dp)
             ) {
-                Button(
-                    onClick = onAddNewProduct,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryPink)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Agrega un nuevo producto", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
+                Icon(Icons.Default.Add, contentDescription = "Agregar")
             }
+        },
+        bottomBar = {
+            AdminBottomBar(
+                currentRoute = "inventario",
+                onGoInventory = { /* Already here */ },
+                onGoDashboard = onGoDashboard,
+                onGoOrders = onGoOrders
+            )
         },
         containerColor = BackgroundSoft
     ) { paddingValues ->
@@ -103,30 +90,36 @@ fun ActiveProductsScreen(
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 shape = RoundedCornerShape(28.dp),
-                placeholder = { Text("Buscar productos activos...", color = TextMuted) },
+                placeholder = { Text("Buscar en inventario...", color = TextMuted) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = PrimaryPink) },
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedContainerColor = SecondaryPink.copy(alpha = 0.1f),
-                    unfocusedContainerColor = SecondaryPink.copy(alpha = 0.1f),
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
                     cursorColor = PrimaryPink
                 )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                contentPadding = PaddingValues(bottom = 100.dp)
-            ) {
-                itemsIndexed(filteredProducts) { _, product ->
-                    ActiveProductItem(
-                        product = product,
-                        onEdit = { onEditProduct(product) },
-                        onDelete = { products.remove(product) }
-                    )
+            if (filteredProducts.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No se encontraron productos", color = TextMuted)
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(bottom = 100.dp)
+                ) {
+                    items(filteredProducts) { product ->
+                        ActiveProductItem(
+                            product = product,
+                            onEdit = { onEditProduct(product) },
+                            onDelete = { onDeleteProduct(product) }
+                        )
+                    }
                 }
             }
         }
@@ -135,67 +128,63 @@ fun ActiveProductsScreen(
 
 @Composable
 fun ActiveProductItem(
-    product: AdminProduct,
+    product: IceCreamItem,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Row(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Box(
-            modifier = Modifier
-                .size(70.dp)
-                .clip(CircleShape)
-                .background(Color.LightGray),
-            contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Icecream, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(35.dp))
-        }
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(SecondaryPink.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(product.emoji, fontSize = 30.sp)
+            }
 
-        Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = product.name,
-                fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
-                color = TextDark
-            )
-            val stockText = if (product.stock < 15) "Bajo Stock: ${product.stock} unidades" else "Unidades en Stock: ${product.stock} "
-            Text(
-                text = stockText,
-                color = if (product.stock < 15) Color.Red else PrimaryPink,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = product.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = TextDark
+                )
+                Text(
+                    text = "Stock: ${product.inventory} unidades",
+                    color = if (product.inventory < 10) Color.Red else TextMuted,
+                    fontSize = 13.sp
+                )
+                Text(
+                    text = "$${"%.2f".format(product.price)}",
+                    fontWeight = FontWeight.Bold,
+                    color = PrimaryPink,
+                    fontSize = 15.sp
+                )
+            }
 
-        Column(horizontalAlignment = Alignment.End) {
-            Text(
-                text = "$${"%.2f".format(product.price)}",
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 18.sp,
-                color = TextDark
-            )
-            Spacer(modifier = Modifier.height(8.dp))
             Row {
                 IconButton(
                     onClick = onEdit,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(SecondaryPink.copy(alpha = 0.15f), CircleShape)
+                    modifier = Modifier.size(36.dp)
                 ) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = PrimaryPink, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = TextMuted, modifier = Modifier.size(20.dp))
                 }
-                Spacer(modifier = Modifier.width(10.dp))
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(SecondaryPink.copy(alpha = 0.15f), CircleShape)
+                    modifier = Modifier.size(36.dp)
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = PrimaryPink, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = PrimaryPink, modifier = Modifier.size(20.dp))
                 }
             }
         }

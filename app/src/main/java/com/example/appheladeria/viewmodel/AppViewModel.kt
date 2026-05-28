@@ -3,6 +3,7 @@ package com.example.appheladeria.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appheladeria.data.model.CartProduct
+import com.example.appheladeria.data.model.IceCreamItem
 import com.example.appheladeria.data.model.Notification
 import com.example.appheladeria.data.model.Order
 import com.example.appheladeria.data.repository.AppRepository
@@ -42,6 +43,9 @@ class AppViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val notifications = repository.getNotifications()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val products = repository.getProducts()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val unreadNotificationsCount = repository.getNotifications()
@@ -181,7 +185,8 @@ class AppViewModel(
                 id = currentOrders.size + 1,
                 items = currentItems,
                 total = currentItems.sumOf { (it.price * it.quantity).toDouble() },
-                status = "En camino"
+                status = "En camino",
+                timestamp = System.currentTimeMillis()
             )
             currentOrders.add(0, newOrder)
             repository.saveOrders(currentOrders)
@@ -223,4 +228,29 @@ class AppViewModel(
 
     fun clearCart() { viewModelScope.launch { repository.clearCart() } }
     fun saveSelection(f: String, t: String, s: String) { viewModelScope.launch { repository.saveSelection(f, t, s) } }
+
+    fun addProduct(name: String, price: Double, category: String, inventory: Int, emoji: String = "🍨") {
+        viewModelScope.launch {
+            val current = repository.getProductsValue().toMutableList()
+            val newProduct = IceCreamItem(
+                id = (current.maxOfOrNull { it.id } ?: 0) + 1,
+                name = name,
+                price = price,
+                category = category,
+                inventory = inventory,
+                emoji = emoji
+            )
+            current.add(newProduct)
+            repository.saveProducts(current)
+            addNotification("Producto agregado", "Se ha añadido $name al inventario")
+        }
+    }
+
+    fun removeProduct(productId: Int) {
+        viewModelScope.launch {
+            val current = repository.getProductsValue().toMutableList()
+            current.removeAll { it.id == productId }
+            repository.saveProducts(current)
+        }
+    }
 }
